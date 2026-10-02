@@ -6,10 +6,15 @@ import './index.css'
 import App from './App.jsx'
 
 createRoot(document.getElementById('root')).render(
-  <StrictMode>
+  <StrictMode> 
     <BrowserRouter>
           <App />
     </BrowserRouter>
   
   </StrictMode>,
 )
+
+
+//O StrictMode protege e analisa tudo o que está dentro dele.
+//O BrowserRouter entrega o "superpoder" de ler e mudar as URLs para quem estiver dentro dele 
+
