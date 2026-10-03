@@ -1,13 +1,13 @@
 import './Header.css'
+import logo from '../../assets/logo-redondinha.png'
 
 
  function Header(){
     return(
-        <div className='Header-container'>
-            <h1>texto teste</h1>
-            <p>texto 2 teste</p>
-            <p>texto 3 teste</p>
-        </div>
+        <header className='Header-container'>
+           <img className='logo' src={logo} alt="Logo da Empresa"/>
+            <p>Cafe de vovó</p>
+        </header>
     )
 
 }
