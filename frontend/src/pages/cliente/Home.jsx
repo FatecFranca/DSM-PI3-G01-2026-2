@@ -14,7 +14,7 @@ function Home(){
         <div>
             <Header/>
             <h1>Home app</h1>
-            <button onClick={()=> navigate('/cardapio')}>botão de navegação</button>
+            <button onClick={()=> navigate('/preferencias')}>botão de navegação pag adm</button>
         </div>
     )
 
