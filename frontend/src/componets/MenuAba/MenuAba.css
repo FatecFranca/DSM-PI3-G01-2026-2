@@ -1,0 +1,34 @@
+
+.container-abas {
+  background-color: #321b15; 
+  display: flex;
+  border-radius: 30px; 
+  margin: 2px auto;
+  width: 95%;
+  height: 50px;
+  justify-content: space-around;
+  align-items: center;
+  box-shadow: #23130f 5px 5px 40px;
+}
+
+.botao-aba {
+  background: transparent;
+  border: none;
+  color: #e6dfd7; 
+  font-size: 10pt;
+  font-weight: 500;
+  padding: 10px 30px;
+  border-radius: 30px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  width: 40%;
+}
+
+
+.botao-aba.ativo {
+  background-color: #e6dfd7; 
+  color: #321b15; 
+  font-weight: 600;
+  width: 45%;
+  padding: 10px;
+}
