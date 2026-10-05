@@ -1,5 +1,7 @@
 import { useNavigate } from "react-router-dom"
 import  Header from '../../componets/Header/Header'
+import Slider from "../../componets/Slider/Slider";
+
 
 
 
@@ -13,6 +15,7 @@ function Home(){
 
         <div>
             <Header/>
+            <Slider/>
             <h1>Home app</h1>
             <button onClick={()=> navigate('/preferencias')}>botão de navegação pag adm</button>
         </div>
