@@ -1,4 +1,4 @@
-import './App.css';
+
 import { Routes, Route } from 'react-router-dom';
 import Home from './pages/cliente/Home';
 import Cardapio from './pages/cliente/Cardapio';
