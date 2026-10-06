@@ -1,0 +1,29 @@
+.button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center; /* centraliza o texto quando não há ícone */
+  gap: 8px;                /* espaço entre ícone e texto */
+
+  width: var(--button-largura);
+  height: var(--button-altura);
+  padding: 0 16px;
+
+  background-color: var(--button-cor);
+  color: var(--button-corTexto);
+
+  border: none;
+  border-radius: 8px;
+  font-size: 1rem;
+  font-weight: 300;
+  cursor: pointer;
+  transition: filter 0.2s;
+}
+
+.button:hover {
+  filter: brightness(0.9);
+}
+
+.button-icone {
+  display: flex;
+  align-items: center;
+}
