@@ -14,10 +14,7 @@ import Button from "../../componets/Button/Button"
 function Home(){
     const navigate = useNavigate();
     const imagensHome = [cafe, croassant, donnuts]
-
-    // ADICIONE ISSO AQUI:
-    console.log("Imagens da Home:", imagensHome);
-
+ 
     return(
         <div>
             <Header/>
