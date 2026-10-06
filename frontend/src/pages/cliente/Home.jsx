@@ -1,26 +1,38 @@
 import { useNavigate } from "react-router-dom"
 import  Header from '../../componets/Header/Header'
-import Slider from "../../componets/Slider/Slider";
+import Slider from "../../componets/Slider/Slider"
+import cafe from '../../assets/cafe.png'
+import croassant from '../../assets/croassats.jpg'
+import donnuts from '../../assets/donnuts.png'
+import Button from "../../componets/Button/Button"
 
 
 
-
-// se a variável ou função mexe com o comportamento daquela tela (como mudar de página ou guardar dados), ela deve ficar DENTRO da função do componente. -> por exemplo const navgate(vai mudar a tela para)
 
 
 
 function Home(){
-    const navigate = useNavigate(); // muda para a tela de cardápios
-    return(
+    const navigate = useNavigate();
+    const imagensHome = [cafe, croassant, donnuts]
 
+    // ADICIONE ISSO AQUI:
+    console.log("Imagens da Home:", imagensHome);
+
+    return(
         <div>
             <Header/>
-            <Slider/>
+            <Slider slides={imagensHome} height='240px'/>
             <h1>Home app</h1>
-            <button onClick={()=> navigate('/preferencias')}>botão de navegação pag adm</button>
+            <Button 
+                texto={'faça seu Pedido'} 
+                cor="#610027"
+                corTexto="#ffffff"
+                largura="95%"
+                altura="80px"
+                onClick={()=> navigate('/cardapio')}
+            />
+            <p>Pague com</p>
         </div>
     )
-
-
 }
 export default Home
