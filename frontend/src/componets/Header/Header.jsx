@@ -1,13 +1,16 @@
 import './Header.css'
+import logo from '../../assets/logo-redondinha.png'
 
 
  function Header(){
+    const nomeRestaurante = 'Café de vovó'
+    const imagemLogo = logo
+    
     return(
-        <div className='Header-container'>
-            <h1>texto teste</h1>
-            <p>texto 2 teste</p>
-            <p>texto 3 teste</p>
-        </div>
+        <header className='Header-container'>
+           <img className='logo' src={imagemLogo} alt="Logo da Empresa"/>
+            <p>{nomeRestaurante}</p>
+        </header>
     )
 
 }

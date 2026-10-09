@@ -1,0 +1,26 @@
+.slide-container {
+    width: 100%;
+    margin: 0 auto;
+    box-shadow: #23130fcd 2px 2px 40px;
+}
+
+.slide-container .swiper {
+    width: 100%;
+}
+
+.slide-container .swiper-slide img {
+    display: block;
+    width: 100%;
+    height: var(--slider-height);
+    object-fit: cover;
+}
+
+.slide-container .swiper-button-next,
+.slide-container .swiper-button-prev {
+    color: white;
+}
+
+.slide-container .swiper-pagination-bullet,
+.slide-container .swiper-pagination-bullet-active {
+    background-color: white;
+}
