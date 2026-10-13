@@ -28,9 +28,34 @@
     margin-bottom: auto;
 }
 
-.texto{
+.texto .nomeSistema{
     font-size: 1rem;
-    font-weight: 300;
+    font-weight: 200;
 }
 
 
+.nomeSistema{
+    font-size: 0.9rem;
+    color: #5a5959;
+    justify-content: flex-end;
+}
+
+.icones-pagamento{
+    display: flex;
+    width: 100%;
+    justify-content: center;
+    gap: 20px;
+    padding: 0, 15px;
+    margin: 10px auto;
+}
+
+
+@media (max-width: 537px){
+    .icones-pagamento{
+        display: grid;
+        grid-template-columns: repeat(2,120px);
+        justify-items: center;
+        align-items: center;
+        max-width: 500px;
+    }
+}
