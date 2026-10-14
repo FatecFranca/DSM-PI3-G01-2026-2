@@ -1,0 +1,53 @@
+
+.seletor-icones {
+  margin: 12px 0;
+}
+
+.grade-icones {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(52px, 1fr));
+  gap: 10px;
+  margin-top: 12px;
+}
+
+.celula-icone {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 52px;
+  border: 1px solid #ddd;
+  border-radius: 10px;
+  background: #fff;
+  color: #555;
+  font-size: 23px;
+  transition: 0.2s;
+}
+
+.celula-icone:hover {
+  border-color: #9b4b32;
+  color: #9b4b32;
+}
+
+.celula-icone.selecionado {
+  border: 2px solid #9b4b32;
+  background: #f8eae5;
+  color: #9b4b32;
+}
+
+.celula-icone:focus-visible {
+  outline: 2px solid #9b4b32;
+  outline-offset: 3px;
+}
+
+.previa-categoria {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 18px;
+}
+
+.nome-categoria {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
