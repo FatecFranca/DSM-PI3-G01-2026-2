@@ -8,7 +8,6 @@ import donnuts from '../../assets/donnuts.png'
 
 function Cardapio(){
     const imagensCardapio =[cafe, croassant, donnuts]
-    const navigate = useNavigate();
     return(
 
         <div>
