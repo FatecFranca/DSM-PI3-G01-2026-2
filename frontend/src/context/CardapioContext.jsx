@@ -52,7 +52,7 @@ export function CardapioProvider({ children }) {
   function editarCategoria(id, texto, icone) {
     setCategorias((lista) =>
       lista.map((categoria) =>
-        categoria.id === id
+        String(categoria.id) === String(id)
           ? { ...categoria, texto, icone }
           : categoria
       )
@@ -62,11 +62,11 @@ export function CardapioProvider({ children }) {
   // Função para excluir uma categoria e limpar produtos vinculados
   function excluirCategoria(id) {
     setCategorias((lista) =>
-      lista.filter((categoria) => categoria.id !== id)
+      lista.filter((categoria) => String(categoria.id) !== String(id))
     );
     // Remove os produtos que pertenciam a essa categoria excluída
     setProdutos((lista) =>
-      lista.filter((produto) => produto.categoriaId !== id)
+      lista.filter((produto) => String(produto.categoriaId) !== String(id))
     );
   }
 
@@ -76,9 +76,20 @@ export function CardapioProvider({ children }) {
     setProdutos((lista) => [...lista, novoProduto]);
   }
 
+  // Função para EDITAR um produto existente (ADICIONADA AQUI)
+  function editarProduto(id, dadosAtualizados) {
+    setProdutos((lista) =>
+      lista.map((produto) =>
+        String(produto.id) === String(id)
+          ? { ...produto, ...dadosAtualizados }
+          : produto
+      )
+    );
+  }
+
   // Função para excluir um produto pelo ID
   function excluirProduto(id) {
-    setProdutos((lista) => lista.filter((produto) => produto.id !== id));
+    setProdutos((lista) => lista.filter((produto) => String(produto.id) !== String(id)));
   }
 
   return (
@@ -90,6 +101,7 @@ export function CardapioProvider({ children }) {
         excluirCategoria,
         produtos,
         adicionarProduto,
+        editarProduto, // <--- EXPOSTO AQUI
         excluirProduto,
       }}
     >
