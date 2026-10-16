@@ -4,11 +4,14 @@ import { BrowserRouter} from 'react-router-dom' // liga a navegação por URL
 
 import './index.css'
 import App from './App.jsx'
+import { CardapioProvider } from './context/CardapioContext.jsx'
 
 createRoot(document.getElementById('root')).render(
   <StrictMode> 
     <BrowserRouter>
-          <App />
+          <CardapioProvider>
+            <App />
+      </CardapioProvider>
     </BrowserRouter>
   
   </StrictMode>,

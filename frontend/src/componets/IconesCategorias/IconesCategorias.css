@@ -1,0 +1,50 @@
+
+.categoria {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--icone-cor, #895737);
+  font-family: sans-serif;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  transition: transform 0.2s ease;
+}
+.categoria:hover { transform: translateY(-2px); }
+
+.categoria .icone-wrapper {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.25rem;
+}
+
+/* ADMIN: botão horizontal */
+.categoria.pilula {
+  gap: 10px;
+  padding: 12px 20px;
+  border-radius: 999px;
+  background: #fff;
+  border: 1px solid var(--icone-cor, #895737);
+  white-space: nowrap;
+}
+.categoria.pilula.ativo { background: var(--icone-fundo, #EFECE5); }
+
+/* CARDÁPIO: círculo com o nome embaixo */
+.categoria.redondo {
+  flex-direction: column;
+  gap: 8px;
+  font-size: 0.8rem;
+}
+.categoria.redondo .icone-wrapper {
+  width: 62px;
+  height: 62px;
+  border-radius: 50%;
+  background: #fff;
+  border: 1px solid #ddd;
+  font-size: 1.5rem;
+}
+.categoria.redondo.ativo .icone-wrapper {
+  border-color: var(--icone-cor, #895737);
+  background: var(--icone-fundo, #EFECE5);
+}
