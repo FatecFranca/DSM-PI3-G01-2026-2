@@ -1,0 +1,6 @@
+spring.application.name=api
+
+# Configura a porta da aplicação
+server.port=8888
+
+spring.mongodb.uri=
