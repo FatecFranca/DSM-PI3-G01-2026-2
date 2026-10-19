@@ -10,7 +10,7 @@ function Preferencias(){
             <Header/>
             <MenuAba />
             <h1>Preferencias app</h1>
-            <button onClick={()=> navigate('/')}>botão de navegação pag adm</button>
+            
         </div>
     )
 

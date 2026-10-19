@@ -1,0 +1,31 @@
+
+.pagamento {
+  
+  background-color: var(--icone-fundo, #EFECE5);
+  color: var(--icone-cor, #895737);
+  border: 1px solid var(--icone-cor, #895737);
+ 
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  border-radius: 8px;
+  font-family: sans-serif;
+  font-weight: 500;
+  width: fit-content;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  transition: transform 0.2s ease;
+}
+
+
+.pagamento:hover {
+  transform: translateY(-2px);
+}
+
+
+.pagamento .icone-wrapper {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.25rem; 
+}

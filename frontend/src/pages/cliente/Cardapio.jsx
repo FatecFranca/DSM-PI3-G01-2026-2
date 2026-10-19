@@ -1,20 +1,22 @@
-import { useNavigate } from "react-router-dom"
+import React from 'react';
+import styled from 'styled-components';
 import Header from "../../componets/Header/Header";
-import Slider from "../../componets/Slider/Slider";
+import ConteudoCardapio from './Components/ConteudoCardapio';
 
-function Cardapio(){
+const PaginaCardapio = styled.div`
+  background-color: #F8F8F7;
+  min-height: 100vh;
+  padding-bottom: 80px;
+  font-family: sans-serif;
+`;
 
-    const navigate = useNavigate();
-    return(
-
-        <div>
-            <Header/>
-            <Slider/>
-            <h1>Cardapio app</h1>
-            <button onClick={()=> navigate('/')}>ir para home</button>
-        </div>
-    )
-
-
+function Cardapio() {
+  return (
+    <PaginaCardapio>
+      <Header />
+      <ConteudoCardapio />
+    </PaginaCardapio>
+  );
 }
-export default Cardapio
+
+export default Cardapio;
