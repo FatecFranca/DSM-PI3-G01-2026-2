@@ -11,6 +11,7 @@ const CardProdutoContainer = styled.div`
   display: flex;
   flex-direction: column;
   position: relative;
+  cursor: pointer;
 `;
 
 const ImagemContainer = styled.div`
@@ -72,7 +73,8 @@ const CardPreco = styled.span`
 
 function CardProduto({ produto, onAdicionar }) {
   return (
-    <CardProdutoContainer>
+    // Tocar em qualquer parte do card (foto, nome, descrição) abre a tela do produto
+    <CardProdutoContainer onClick={() => onAdicionar(produto)}>
       <ImagemContainer>
         {produto.imagem ? (
           <img src={produto.imagem} alt={produto.nome} />
@@ -95,7 +97,10 @@ function CardProduto({ produto, onAdicionar }) {
             largura="32px"
             cor="#5C1D24"
             corTexto="#ffffff"
-            onClick={() => onAdicionar(produto)}
+            onClick={(e) => {
+              e?.stopPropagation?.(); // evita abrir duas vezes (botão + card)
+              onAdicionar(produto);
+            }}
           />
         </CardFooter>
       </CardInfo>
