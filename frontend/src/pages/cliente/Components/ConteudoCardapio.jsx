@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import styled from 'styled-components';
-import { X, ArrowLeft } from 'lucide-react';
+import { X, ArrowLeft, Trash2, Pencil } from 'lucide-react';
 import cafe from '../../../assets/cafe.png';
 import croassant from '../../../assets/croassats.jpg'; // imagens que vão aparecer no carriossel
 import donnuts from '../../../assets/donnuts.png';
@@ -165,6 +165,7 @@ const CaixaOpcoes = styled.div`
 `;
 
 const OpcaoLinha = styled.label`
+  position: relative;
   display: flex;
   align-items: center;
   gap: 12px;
@@ -245,8 +246,8 @@ const BotaoAvancar = styled.button`
   cursor: pointer;
 `;
 
-// Uma opção (radio ou checkbox)
-function Opcao({ tipo, name, marcado, onChange, nome, detalhe, preco, comMiniatura, imagem }) {
+// Uma opção (radio ou checkbox). Com semIndicador, só o destaque mostra o que está selecionado.
+function Opcao({ tipo, name, marcado, onChange, nome, detalhe, preco, comMiniatura, imagem, semIndicador }) {
   return (
     <OpcaoLinha $marcado={marcado}>
       {comMiniatura && (
@@ -260,7 +261,14 @@ function Opcao({ tipo, name, marcado, onChange, nome, detalhe, preco, comMiniatu
 
       {preco && <PrecoOpcao>{preco}</PrecoOpcao>}
 
-      <input type={tipo} name={name} checked={marcado} onChange={onChange} />
+      <input
+        type={tipo}
+        name={name}
+        checked={marcado}
+        onChange={onChange}
+        aria-label={nome}
+        style={semIndicador ? { position: 'absolute', opacity: 0, pointerEvents: 'none', width: 0, height: 0 } : undefined}
+      />
     </OpcaoLinha>
   );
 }
@@ -269,32 +277,40 @@ function Opcao({ tipo, name, marcado, onChange, nome, detalhe, preco, comMiniatu
 // Tela de personalização do produto (o que o cliente vê ao tocar no "+")
 // As etapas só aparecem se o admin configurou aquele recurso no prato.
 // ---------------------------------------------------------------
-export function ModalProdutoCliente({ produto, produtos, onFechar, onConfirmar }) {
+export function ModalProdutoCliente({ produto, produtos, itemInicial = null, onFechar, onConfirmar }) {
   const tamanhosAtivos = (produto.tamanhos || []).filter((t) => t.ativo);
   const ingredientes = produto.ingredientes || [];
   const adicionais = produto.adicionais || [];
   // ignora combos cujos produtos foram todos excluídos
   const combos = (produto.combos || []).filter((c) => produtosDoCombo(c, produtos).length > 0);
 
+  // Ordem igual ao protótipo: tamanho -> combo -> retirar itens -> adicionais
+  const SUBTITULO = 'personalize o seu prato com base nas suas preferências';
   const etapas = [];
   if (tamanhosAtivos.length > 0) {
-    etapas.push({ tipo: 'tamanho', titulo: 'Escolha o tamanho', subtitulo: 'selecione o tamanho do seu prato' });
-  }
-  if (ingredientes.length > 0) {
-    etapas.push({ tipo: 'ingredientes', titulo: 'Quer retirar algum ingrediente?', subtitulo: 'desmarque o que você não quer no seu prato' });
-  }
-  if (adicionais.length > 0) {
-    etapas.push({ tipo: 'adicionais', titulo: 'Quer adicionar algo mais?', subtitulo: 'escolha os extras para incrementar o seu pedido' });
+    etapas.push({ tipo: 'tamanho', titulo: 'Escolha o tamanho', subtitulo: SUBTITULO });
   }
   if (combos.length > 0) {
-    etapas.push({ tipo: 'combo', titulo: 'Quer turbinar o seu prato?!', subtitulo: 'transforme em combo com outros itens do cardápio' });
+    etapas.push({ tipo: 'combo', titulo: 'Quer turbinar o seu Prato?!', subtitulo: SUBTITULO });
+  }
+  if (ingredientes.length > 0) {
+    etapas.push({ tipo: 'ingredientes', titulo: 'Quer retirar algum item do seu Pedido?!', subtitulo: SUBTITULO });
+  }
+  if (adicionais.length > 0) {
+    etapas.push({ tipo: 'adicionais', titulo: 'Quer adicionar algo mais?', subtitulo: SUBTITULO });
   }
 
+  // Ao editar um item do carrinho, começa com as escolhas que o cliente já tinha feito
+  const selecaoAnterior = itemInicial?.selecao;
+  const tamanhoInicial = tamanhosAtivos.some((t) => t.id === selecaoAnterior?.tamanhoId)
+    ? selecaoAnterior.tamanhoId
+    : tamanhosAtivos[0]?.id ?? null;
+
   const [etapaAtual, setEtapaAtual] = useState(0);
-  const [tamanhoId, setTamanhoId] = useState(tamanhosAtivos[0]?.id ?? null);
-  const [removidos, setRemovidos] = useState([]);         // ids de ingredientes retirados
-  const [adicionaisSel, setAdicionaisSel] = useState([]); // ids de adicionais escolhidos
-  const [comboId, setComboId] = useState(null);
+  const [tamanhoId, setTamanhoId] = useState(tamanhoInicial);
+  const [removidos, setRemovidos] = useState(selecaoAnterior?.removidos ?? []);         // ids de ingredientes retirados
+  const [adicionaisSel, setAdicionaisSel] = useState(selecaoAnterior?.adicionaisSel ?? []); // ids de adicionais escolhidos
+  const [comboId, setComboId] = useState(selecaoAnterior?.comboId ?? null);
 
   const tamanho = tamanhosAtivos.find((t) => t.id === tamanhoId) || null;
   const adicionaisEscolhidos = adicionais.filter((a) => adicionaisSel.includes(a.id));
@@ -320,7 +336,7 @@ export function ModalProdutoCliente({ produto, produtos, onFechar, onConfirmar }
     }
 
     onConfirmar({
-      idItem: crypto.randomUUID(),
+      idItem: itemInicial?.idItem ?? crypto.randomUUID(),
       produtoId: produto.id,
       nome: produto.nome,
       tamanho: tamanho ? tamanho.nome : null,
@@ -330,6 +346,8 @@ export function ModalProdutoCliente({ produto, produtos, onFechar, onConfirmar }
         ? { nome: combo.nome, preco: combo.preco, itens: produtosDoCombo(combo, produtos).map((p) => p.nome) }
         : null,
       total: subtotal,
+      // guardado para poder editar o item depois, no carrinho
+      selecao: { tamanhoId, removidos, adicionaisSel, comboId },
     });
   }
 
@@ -387,9 +405,10 @@ export function ModalProdutoCliente({ produto, produtos, onFechar, onConfirmar }
                   <Opcao
                     key={ing.id}
                     tipo="checkbox"
-                    marcado={!removidos.includes(ing.id)}
+                    marcado={removidos.includes(ing.id)}
                     onChange={() => alternar(removidos, setRemovidos, ing.id)}
                     nome={ing.nome}
+                    semIndicador
                   />
                 ))}
 
@@ -443,8 +462,168 @@ export function ModalProdutoCliente({ produto, produtos, onFechar, onConfirmar }
             <strong>{formatarMoeda(subtotal)}</strong>
           </LinhaSubtotal>
           <BotaoAvancar type="button" onClick={avancar}>
-            {ehUltimaEtapa ? 'Adicionar ao pedido' : 'Avançar'}
+            {ehUltimaEtapa ? (itemInicial ? 'Salvar alterações' : 'Adicionar ao pedido') : 'Avançar'}
           </BotaoAvancar>
+        </Rodape>
+      </Corpo>
+    </Tela>
+  );
+}
+
+// ---------------------------------------------------------------
+// Tela do carrinho: ver o que foi pedido, remover itens ou cancelar o pedido
+// ---------------------------------------------------------------
+const TituloPagina = styled.h2`
+  margin: 0;
+  color: #5C1D24;
+  font-size: 20px;
+`;
+
+const CardItemPedido = styled.div`
+  background: #FFF;
+  border-radius: 16px;
+  padding: 14px 16px;
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08);
+`;
+
+const InfoItemPedido = styled.div`
+  flex: 1;
+  min-width: 0;
+
+  strong { display: block; color: #4A2E18; font-size: 15px; margin-bottom: 6px; }
+  p { margin: 2px 0; color: #6B5B53; font-size: 12px; line-height: 1.4; }
+`;
+
+const ValorItemPedido = styled.span`
+  color: #5C1D24;
+  font-weight: 700;
+  font-size: 15px;
+  white-space: nowrap;
+`;
+
+const BotaoLixeira = styled.button`
+  background: none;
+  border: none;
+  color: #888;
+  cursor: pointer;
+  padding: 4px;
+  display: flex;
+`;
+
+const PedidoVazio = styled.p`
+  text-align: center;
+  color: #888;
+  padding: 40px 0;
+`;
+
+const BotaoSecundario = styled.button`
+  width: 100%;
+  height: 52px;
+  border-radius: 10px;
+  border: 1.5px solid #5C1D24;
+  background: transparent;
+  color: #5C1D24;
+  font-size: 15px;
+  cursor: pointer;
+`;
+
+const BotaoCancelar = styled.button`
+  width: 100%;
+  height: 52px;
+  border-radius: 10px;
+  border: none;
+  background: #8E806A;
+  color: #FFF;
+  font-size: 15px;
+  cursor: pointer;
+`;
+
+export function TelaCarrinho({ itens, onEditarItem, onRemoverItem, onCancelarPedido, onFechar }) {
+  const total = itens.reduce((soma, item) => soma + item.total, 0);
+
+  function remover(item) {
+    if (window.confirm(`Remover "${item.nome}" do pedido?`)) {
+      onRemoverItem(item.idItem);
+    }
+  }
+
+  function cancelar() {
+    if (window.confirm('Deseja realmente cancelar o pedido? Todos os itens serão removidos.')) {
+      onCancelarPedido();
+    }
+  }
+
+  return (
+    <Tela role="dialog" aria-modal="true" aria-label="Seu pedido">
+      <Topo>
+        <Header />
+        <BotaoFechar type="button" onClick={onFechar} aria-label="Fechar">
+          <X size={22} />
+        </BotaoFechar>
+      </Topo>
+
+      <Corpo>
+        <TituloPagina>Seu pedido</TituloPagina>
+
+        {itens.length === 0 ? (
+          <PedidoVazio>Nenhum item adicionado ainda.</PedidoVazio>
+        ) : (
+          itens.map((item) => (
+            <CardItemPedido key={item.idItem}>
+              <InfoItemPedido>
+                <strong>{item.nome}</strong>
+                {item.tamanho && <p>Tamanho: {item.tamanho}</p>}
+                {item.combo && (
+                  <p>Combo: {item.combo.nome} ({item.combo.itens.join(' + ')}) — + {formatarMoeda(item.combo.preco)}</p>
+                )}
+                {item.ingredientesRemovidos.length > 0 && (
+                  <p>Sem: {item.ingredientesRemovidos.join(', ')}</p>
+                )}
+                {item.adicionais.length > 0 && (
+                  <p>
+                    Adicionais: {item.adicionais.map((a) => `${a.nome} (+ ${formatarMoeda(a.preco)})`).join(', ')}
+                  </p>
+                )}
+              </InfoItemPedido>
+
+              <ValorItemPedido>{formatarMoeda(item.total)}</ValorItemPedido>
+
+              <BotaoLixeira
+                type="button"
+                style={{ color: '#B8864F' }}
+                onClick={() => onEditarItem(item)}
+                aria-label={`Editar ${item.nome}`}
+              >
+                <Pencil size={18} />
+              </BotaoLixeira>
+
+              <BotaoLixeira type="button" onClick={() => remover(item)} aria-label={`Remover ${item.nome}`}>
+                <Trash2 size={18} />
+              </BotaoLixeira>
+            </CardItemPedido>
+          ))
+        )}
+
+        <Rodape>
+          {itens.length > 0 && (
+            <LinhaSubtotal>
+              <span>Total:</span>
+              <strong>{formatarMoeda(total)}</strong>
+            </LinhaSubtotal>
+          )}
+
+          <BotaoSecundario type="button" onClick={onFechar}>
+            {itens.length > 0 ? 'Continuar comprando' : 'Voltar ao cardápio'}
+          </BotaoSecundario>
+
+          {itens.length > 0 && (
+            <BotaoCancelar type="button" onClick={cancelar}>
+              Cancelar pedido
+            </BotaoCancelar>
+          )}
         </Rodape>
       </Corpo>
     </Tela>
@@ -465,6 +644,9 @@ function ConteudoCardapio() {
   const [produtoSelecionado, setProdutoSelecionado] = useState(null);
   // Itens já confirmados pelo cliente
   const [carrinho, setCarrinho] = useState([]);
+  const [carrinhoAberto, setCarrinhoAberto] = useState(false);
+  // Item do carrinho que o cliente está editando (null = produto novo)
+  const [itemEmEdicao, setItemEmEdicao] = useState(null);
 
   const totalCarrinho = carrinho.reduce((soma, item) => soma + item.total, 0);
 
@@ -475,9 +657,38 @@ function ConteudoCardapio() {
     return <Componente aria-hidden="true" />;
   }
 
-  function confirmarItem(item) {
-    setCarrinho((atual) => [...atual, item]);
+  function removerItem(idItem) {
+    setCarrinho((atual) => atual.filter((item) => item.idItem !== idItem));
+  }
+
+  function cancelarPedido() {
+    setCarrinho([]);
+    setCarrinhoAberto(false);
+  }
+
+  function editarItem(item) {
+    const produto = produtos.find((p) => p.id === item.produtoId);
+    if (!produto) {
+      window.alert('Este produto não está mais disponível no cardápio.');
+      return;
+    }
+    setItemEmEdicao(item);
+    setProdutoSelecionado(produto);
+  }
+
+  function fecharProduto() {
     setProdutoSelecionado(null);
+    setItemEmEdicao(null);
+  }
+
+  // Se o item já existe no carrinho (edição), substitui; senão, adiciona
+  function confirmarItem(item) {
+    setCarrinho((atual) =>
+      atual.some((i) => i.idItem === item.idItem)
+        ? atual.map((i) => (i.idItem === item.idItem ? item : i))
+        : [...atual, item]
+    );
+    fecharProduto();
   }
 
   // filtragem global de produtos
@@ -508,15 +719,27 @@ function ConteudoCardapio() {
       <BarraInferiorCarrinho 
         quantidade={carrinho.length}
         total={totalCarrinho}
-        onClickCarrinho={() => console.log('Abrir carrinho', carrinho)}
+        onClickCarrinho={() => setCarrinhoAberto(true)}
       />
 
+      {carrinhoAberto && (
+        <TelaCarrinho
+          itens={carrinho}
+          onEditarItem={editarItem}
+          onRemoverItem={removerItem}
+          onCancelarPedido={cancelarPedido}
+          onFechar={() => setCarrinhoAberto(false)}
+        />
+      )}
+
+      {/* Fica depois do carrinho no código para abrir POR CIMA dele ao editar um item */}
       {produtoSelecionado && (
         <ModalProdutoCliente
-          key={produtoSelecionado.id}
+          key={`${produtoSelecionado.id}-${itemEmEdicao?.idItem ?? 'novo'}`}
           produto={produtoSelecionado}
           produtos={produtos}
-          onFechar={() => setProdutoSelecionado(null)}
+          itemInicial={itemEmEdicao}
+          onFechar={fecharProduto}
           onConfirmar={confirmarItem}
         />
       )}
