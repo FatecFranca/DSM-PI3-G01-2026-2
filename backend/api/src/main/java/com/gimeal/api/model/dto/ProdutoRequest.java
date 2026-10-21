@@ -4,6 +4,4 @@ import org.springframework.web.multipart.MultipartFile;
 
 public record ProdutoRequest(
     String codigoImagem,
-    MultipartFile imagem) {
-    
-}
+    MultipartFile imagem) {}

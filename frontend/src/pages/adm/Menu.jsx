@@ -38,7 +38,7 @@ function Menu() {
     const [nomePrato, setNomePrato] = useState('');
     const [descricaoPrato, setDescricaoPrato] = useState('');
     const [precoPrato, setPrecoPrato] = useState('');
-    const [imagemPrato, setImagemPrato] = useState('');
+    const [imagemPrato, setImagemPrato] = useState(''); // #########################################################################################
 
     function handleCriarCategoria(e) {
         e.preventDefault();
@@ -57,7 +57,7 @@ function Menu() {
             nome: nomePrato,
             descricao: descricaoPrato,
             preco: precoPrato,
-            imagem: imagemPrato
+            imagem: imagemPrato // ##################################################################################################################
         };
 
         if (pratoEmEdicaoId) {
@@ -74,7 +74,7 @@ function Menu() {
         setNomePrato('');
         setDescricaoPrato('');
         setPrecoPrato('');
-        setImagemPrato('');
+        setImagemPrato(''); // ###################################################################################################################################################
         setIsModalPratoOpen(true);
     }
 
@@ -83,7 +83,7 @@ function Menu() {
         setNomePrato(produto.nome);
         setDescricaoPrato(produto.descricao);
         setPrecoPrato(produto.preco);
-        setImagemPrato(produto.imagem || '');
+        setImagemPrato(produto.imagem || ''); // ##################################################################################################
         setIsModalPratoOpen(true);
     }
 
@@ -92,7 +92,7 @@ function Menu() {
         setPratoEmEdicaoId(null);
     }
 
-    function handleUploadImagem(e) {
+    function handleUploadImagem(e) { // ###################################################################################################################################################
         const file = e.target.files[0];
         if (file) {
             const reader = new FileReader();
@@ -165,7 +165,7 @@ function Menu() {
                 setDescricaoPrato={setDescricaoPrato}
                 precoPrato={precoPrato}
                 setPrecoPrato={setPrecoPrato}
-                imagemPrato={imagemPrato}
+                imagemPrato={imagemPrato}  // ##################################################################################################
                 onUploadImagem={handleUploadImagem}
             />
         </div>

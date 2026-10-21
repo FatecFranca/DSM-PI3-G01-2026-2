@@ -3,7 +3,7 @@ package com.gimeal.api.model.entity;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
-@Document(collation = "produtos")
+@Document(collection = "produtos")
 public class Produto {
     
     @Id 

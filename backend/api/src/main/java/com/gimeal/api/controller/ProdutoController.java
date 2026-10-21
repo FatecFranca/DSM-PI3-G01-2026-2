@@ -1,13 +1,18 @@
 package com.gimeal.api.controller;
 
+import java.util.List;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.gimeal.api.model.dto.ProdutoRequest;
+import com.gimeal.api.model.dto.ProdutoResponse;
 import com.gimeal.api.model.entity.Produto;
 import com.gimeal.api.service.ProdutoService;
 
@@ -24,4 +29,18 @@ public class ProdutoController {
         Produto produtoSalvo = produtoService.criarProduto(produtoRequest);
         return ResponseEntity.ok(produtoSalvo);
     }
+
+    @GetMapping
+    public List<ProdutoResponse> buscarTodos() {
+        return produtoService.buscarTodos();
+    }
+
+    @GetMapping("/{id}")
+    public ResponseEntity<ProdutoResponse> buscarPorId(@PathVariable String id) {
+        
+        ProdutoResponse produtoResponse = produtoService.buscarPorId(id);
+
+        return ResponseEntity.ok(produtoResponse);
+    }
+
 }
