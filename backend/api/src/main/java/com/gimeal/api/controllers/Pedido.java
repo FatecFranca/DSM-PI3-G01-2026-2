@@ -1,5 +1,0 @@
-package com.gimeal.api.controllers;
-
-public class Pedido {
-    
-}
