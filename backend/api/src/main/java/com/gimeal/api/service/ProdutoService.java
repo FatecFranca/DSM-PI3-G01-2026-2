@@ -39,6 +39,21 @@ public class ProdutoService {
         return new ProdutoResponse(produto.getId(), produto.getCodigoImagem(), urlTemporaria);
     }
 
+    public Produto atualizarProduto(String id, ProdutoRequest produtoRequest) {
+
+        Produto produtoExistente = produtoRepository.findById(id)
+            .orElseThrow(() -> new RuntimeException("Produto não encontrado"));
+            
+        String codigoImagem = produtoExistente.getCodigoImagem();
+
+        if (codigoImagem != null) {
+
+            s3Service.updateFile(produtoRequest.imagem(), codigoImagem);
+        }
+
+        return produtoRepository.save(produtoExistente);
+    }
+
     public List<ProdutoResponse> buscarTodos() {
 
         List<Produto> produtos = produtoRepository.findAll();

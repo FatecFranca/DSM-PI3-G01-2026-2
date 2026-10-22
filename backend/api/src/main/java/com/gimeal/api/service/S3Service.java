@@ -78,6 +78,24 @@ public class S3Service {
         
     }
 
+    public String updateFile(MultipartFile file, String fileName) {
+
+        String key = "images/" + fileName;
+
+        File fileObj = convertMultiPartFileToFile(file);
+
+        PutObjectRequest objectRequest = PutObjectRequest.builder()
+                .bucket(bucketName)
+                .key(key) 
+                .build();
+
+        s3Client.putObject(objectRequest, fileObj.toPath());
+
+        fileObj.delete();
+        
+        return fileName;
+    }
+
     public void excluirImagemS3(String fileName) {
 
         String key = "images/" + fileName;

@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -42,6 +43,21 @@ public class ProdutoController {
         ProdutoResponse produtoResponse = produtoService.buscarPorId(id);
 
         return ResponseEntity.ok(produtoResponse);
+    }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<Produto> atualizar(
+            @PathVariable String id,
+            @ModelAttribute ProdutoRequest produtoRequest) {
+
+        if (produtoService.buscarPorId(id) == null) {
+            return ResponseEntity.notFound().build();
+
+        }
+
+        Produto produtoAtualizado = produtoService.atualizarProduto(id, produtoRequest);
+        
+        return ResponseEntity.ok(produtoAtualizado);
     }
 
     @DeleteMapping("/{id}") 
