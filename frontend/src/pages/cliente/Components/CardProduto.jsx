@@ -1,6 +1,5 @@
 import React from 'react';
 import styled from 'styled-components';
-import Button from '../../../componets/Button/Button';
 import { FaPlus } from 'react-icons/fa6';
 
 const CardProdutoContainer = styled.div`
@@ -71,6 +70,25 @@ const CardPreco = styled.span`
   font-size: 14px;
 `;
 
+// Botão redondo com Flexbox garantindo o ícone perfeitamente centralizado
+const BotaoAdicionarCircular = styled.div`
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  background-color: #5C1D24;
+  color: #ffffff;
+  border-radius: 50%;
+  cursor: pointer;
+  transition: transform 0.1s ease, opacity 0.1s ease;
+
+  &:hover {
+    opacity: 0.9;
+    transform: scale(1.05);
+  }
+`;
+
 function CardProduto({ produto, onAdicionar }) {
   return (
     // Tocar em qualquer parte do card (foto, nome, descrição) abre a tela do produto
@@ -91,17 +109,16 @@ function CardProduto({ produto, onAdicionar }) {
 
         <CardFooter>
           <CardPreco>R$ {produto.preco}</CardPreco>
-          <Button 
-            icone={<FaPlus size={12} />}
-            altura="32px"
-            largura="32px"
-            cor="#5C1D24"
-            corTexto="#ffffff"
+          
+          <BotaoAdicionarCircular
             onClick={(e) => {
               e?.stopPropagation?.(); // evita abrir duas vezes (botão + card)
               onAdicionar(produto);
             }}
-          />
+            aria-label={`Adicionar ${produto.nome}`}
+          >
+            <FaPlus size={12} />
+          </BotaoAdicionarCircular>
         </CardFooter>
       </CardInfo>
     </CardProdutoContainer>

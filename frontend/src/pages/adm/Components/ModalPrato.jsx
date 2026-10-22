@@ -3,8 +3,21 @@ import { X, ImagePlus, Edit2, Trash2 } from "lucide-react";
 
 const MAX_OPCOES_COMBO = 3;
 
-// Produtos (já cadastrados) que fazem parte de uma opção de combo.
-// Ignora ids de produtos que foram excluídos depois.
+// Função auxiliar para formatar automaticamente números em formato de moeda (ex: "1234" -> "12,34")
+function formatarValorMonetario(valor) {
+    if (!valor) return '';
+    const apenasDigitos = valor.replace(/\D/g, '');
+    if (!apenasDigitos) return '';
+    
+    const numero = Number(apenasDigitos) / 100;
+    
+    return numero.toLocaleString('pt-BR', {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2
+    });
+}
+
+// Produtos que fazem parte de uma opção de combo.
 function produtosDoCombo(combo, produtos) {
     return (combo.produtosIds || [])
         .map((id) => produtos.find((p) => p.id === id))
@@ -12,7 +25,7 @@ function produtosDoCombo(combo, produtos) {
 }
 
 // ---------------------------------------------------------------
-// Estilos (inline, igual ao que você já usa neste arquivo)
+// Estilos (inline)
 // ---------------------------------------------------------------
 const est = {
     secao: { marginTop: '24px', marginBottom: '24px' },
@@ -47,7 +60,6 @@ function estiloBotao(desabilitado) {
 
 // ---------------------------------------------------------------
 // Lista com cadastro/edição na própria tela (Ingredientes e Adicionais)
-// comPreco = false -> só nome | comPreco = true -> nome + valor
 // ---------------------------------------------------------------
 function SecaoItens({ titulo, descricao, itens, setItens, comPreco = false, vazio, placeholderNome, textoBotao, nomeDoTipo }) {
     const [nome, setNome] = useState('');
@@ -87,7 +99,6 @@ function SecaoItens({ titulo, descricao, itens, setItens, comPreco = false, vazi
         }
     }
 
-    // Enter dentro do input adiciona o item (sem isso, o Enter salvaria o prato inteiro)
     function aoTeclar(e) {
         if (e.key === 'Enter') {
             e.preventDefault();
@@ -132,7 +143,7 @@ function SecaoItens({ titulo, descricao, itens, setItens, comPreco = false, vazi
                             style={{ ...est.input, ...est.inputPreco }}
                             placeholder="2,00"
                             value={preco}
-                            onChange={(e) => setPreco(e.target.value)}
+                            onChange={(e) => setPreco(formatarValorMonetario(e.target.value))}
                             onKeyDown={aoTeclar}
                         />
                     )}
@@ -151,21 +162,34 @@ function SecaoItens({ titulo, descricao, itens, setItens, comPreco = false, vazi
 }
 
 // ---------------------------------------------------------------
-// Tamanhos: Pequeno / Médio / Grande — liga/desliga e acréscimo no preço
+// Tamanhos: Auto-complete com o preço principal ao marcar o checkbox
 // ---------------------------------------------------------------
-function SecaoTamanhos({ tamanhos, setTamanhos }) {
+function SecaoTamanhos({ tamanhos, setTamanhos, precoPrincipal }) {
     function alternar(id) {
-        setTamanhos(tamanhos.map((t) => (t.id === id ? { ...t, ativo: !t.ativo } : t)));
+        setTamanhos(
+            tamanhos.map((t) => {
+                if (t.id === id) {
+                    const vaiAtivar = !t.ativo;
+                    // Se estiver ativando o tamanho e ele estiver sem preço, preenche com o preço principal (se houver)
+                    const novoPreco = (vaiAtivar && (!t.preco || t.preco === '0,00') && precoPrincipal) 
+                        ? precoPrincipal 
+                        : t.preco;
+
+                    return { ...t, ativo: vaiAtivar, preco: novoPreco };
+                }
+                return t;
+            })
+        );
     }
 
     function mudarPreco(id, valor) {
-        setTamanhos(tamanhos.map((t) => (t.id === id ? { ...t, preco: valor } : t)));
+        setTamanhos(tamanhos.map((t) => (t.id === id ? { ...t, preco: formatarValorMonetario(valor) } : t)));
     }
 
     return (
         <div style={est.secao}>
             <h3 style={est.titulo}>Tamanhos disponíveis</h3>
-            <p style={est.descricao}>Marque os tamanhos em que este prato é vendido e, se quiser, o acréscimo no preço.</p>
+            <p style={est.descricao}>Marque os tamanhos. Ao ativar um tamanho, ele puxa automaticamente o preço base caso esteja vazio.</p>
 
             <div style={est.caixa}>
                 {tamanhos.map((tam) => (
@@ -182,7 +206,7 @@ function SecaoTamanhos({ tamanhos, setTamanhos }) {
                             type="text"
                             inputMode="decimal"
                             style={{ ...est.input, ...est.inputPreco, opacity: tam.ativo ? 1 : 0.5 }}
-                            placeholder="+ R$ 0,00"
+                            placeholder="R$ 0,00"
                             value={tam.preco}
                             disabled={!tam.ativo}
                             onChange={(e) => mudarPreco(tam.id, e.target.value)}
@@ -195,7 +219,7 @@ function SecaoTamanhos({ tamanhos, setTamanhos }) {
 }
 
 // ---------------------------------------------------------------
-// Combos: até 3 opções montadas com produtos já cadastrados
+// Combos
 // ---------------------------------------------------------------
 function SecaoCombos({ combos, produtos, onAdicionar, onEditar, onExcluir }) {
     const limiteAtingido = combos.length >= MAX_OPCOES_COMBO;
@@ -246,14 +270,13 @@ function SecaoCombos({ combos, produtos, onAdicionar, onEditar, onExcluir }) {
 }
 
 // ---------------------------------------------------------------
-// Modal para criar/editar UMA opção de combo (abre por cima do modal de prato)
+// Modal para criar/editar UMA opção de combo
 // ---------------------------------------------------------------
 function ModalCombo({ combo, categorias, produtos, produtoAtualId, onSalvar, onFechar }) {
     const [nome, setNome] = useState(combo?.nome || '');
     const [preco, setPreco] = useState(combo?.preco || '');
     const [selecionados, setSelecionados] = useState(combo?.produtosIds || []);
 
-    // O próprio prato que está sendo editado não entra no combo dele
     const disponiveis = produtos.filter((p) => p.id !== produtoAtualId);
 
     function alternar(id) {
@@ -287,7 +310,7 @@ function ModalCombo({ combo, categorias, produtos, produtoAtualId, onSalvar, onF
 
                     <div style={est.campo}>
                         <label style={est.label}>Valor adicional do combo R$</label>
-                        <input type="text" inputMode="decimal" style={est.input} value={preco} onChange={(e) => setPreco(e.target.value)} placeholder="18,90" required />
+                        <input type="text" inputMode="decimal" style={est.input} value={preco} onChange={(e) => setPreco(formatarValorMonetario(e.target.value))} placeholder="18,90" required />
                         <p style={est.aviso}>Este valor é somado ao preço do prato quando o cliente escolhe esta opção.</p>
                     </div>
 
@@ -364,20 +387,15 @@ function ModalPrato({
     descricaoPrato, setDescricaoPrato,
     precoPrato, setPrecoPrato,
     imagemPrato, onUploadImagem,
-    // Listas configuráveis do prato
     ingredientes = [], setIngredientes,
     adicionais = [], setAdicionais,
     tamanhos = [], setTamanhos,
     combos = [], setCombos,
-    // Necessários para montar combos com produtos já cadastrados
     categorias = [],
     produtos = [],
     produtoAtualId = null,
 }) {
-    // IMPORTANTE: todos os hooks ficam ANTES do "return null".
-    // (useState depois de um return condicional quebra as regras dos hooks
-    // e o React lança erro quando o modal abre.)
-    const [comboModal, setComboModal] = useState(null); // { combo: null | objeto }
+    const [comboModal, setComboModal] = useState(null);
 
     if (!isOpen) return null;
 
@@ -417,7 +435,6 @@ function ModalPrato({
                         Este item aparece na categoria <strong>{categoriaNome}</strong>
                     </p>
 
-                    {/* O submit principal salva o prato inteiro */}
                     <form onSubmit={onSubmit}>
                         <label className="upload-imagem">
                             <div className="upload-imagem-area">
@@ -455,17 +472,19 @@ function ModalPrato({
                         </div>
 
                         <div className="campo-prato campo-preco">
-                            <label>Preço R$</label>
+                            <label>Preço R$ (Valor base)</label>
                             <input
                                 type="text"
+                                inputMode="decimal"
                                 value={precoPrato}
-                                onChange={(e) => setPrecoPrato(e.target.value)}
+                                onChange={(e) => setPrecoPrato(formatarValorMonetario(e.target.value))}
                                 placeholder="33,90"
                                 required
                             />
+                            <p style={est.aviso}>Este preço servirá de auto-preenchimento ao marcar os tamanhos.</p>
                         </div>
 
-                        {/* INGREDIENTES: o cliente poderá retirar algum */}
+                        {/* INGREDIENTES */}
                         <SecaoItens
                             titulo="Ingredientes"
                             descricao="Adicione os ingredientes que compõem o prato. O cliente poderá retirar algum deles."
@@ -477,7 +496,7 @@ function ModalPrato({
                             nomeDoTipo="ingrediente"
                         />
 
-                        {/* ADICIONAIS: extras com valor */}
+                        {/* ADICIONAIS */}
                         <SecaoItens
                             titulo="Adicionais do prato"
                             descricao="Cadastre os ingredientes extras que o cliente pode escolher para turbinar o pedido."
@@ -490,8 +509,12 @@ function ModalPrato({
                             nomeDoTipo="adicional"
                         />
 
-                        {/* TAMANHOS */}
-                        <SecaoTamanhos tamanhos={tamanhos} setTamanhos={setTamanhos} />
+                        {/* TAMANHOS (Auto-preenche ao clicar no checkbox) */}
+                        <SecaoTamanhos 
+                            tamanhos={tamanhos} 
+                            setTamanhos={setTamanhos} 
+                            precoPrincipal={precoPrato} 
+                        />
 
                         {/* COMBOS */}
                         <SecaoCombos
@@ -502,7 +525,6 @@ function ModalPrato({
                             onExcluir={excluirCombo}
                         />
 
-                        {/* Botões Finais de Salvar o Prato Inteiro */}
                         <button type="submit" className="btn-modal btn-modal-primario" style={{ width: '100%', padding: '14px', borderRadius: '12px', background: '#5C1D24', color: '#FFF', border: 'none', fontWeight: 'bold', cursor: 'pointer', marginBottom: '10px' }}>
                             Salvar alterações
                         </button>
@@ -513,7 +535,6 @@ function ModalPrato({
                 </div>
             </div>
 
-            {/* Fora do <form> do prato, para não aninhar formulários */}
             {comboModal && (
                 <ModalCombo
                     key={comboModal.combo?.id || 'novo'}
