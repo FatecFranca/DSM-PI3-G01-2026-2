@@ -64,5 +64,16 @@ public class ProdutoService {
         
         return respostaList;
     }
+
+    public void excluirProduto(String id) {
+
+        Produto produto = produtoRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Produto não encontrado"));
+
+        String codigoImagem = produto.getCodigoImagem();
+
+        produtoRepository.deleteById(id);
+        s3Service.excluirImagemS3(codigoImagem);
+    }
     
 }

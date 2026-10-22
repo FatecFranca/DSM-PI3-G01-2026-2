@@ -15,6 +15,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import software.amazon.awssdk.services.s3.S3Client;
+import software.amazon.awssdk.services.s3.model.DeleteObjectRequest;
 import software.amazon.awssdk.services.s3.model.GetObjectRequest;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 import software.amazon.awssdk.services.s3.presigner.S3Presigner;
@@ -75,6 +76,19 @@ public class S3Service {
 
         return presignedRequest.url().toExternalForm();
         
+    }
+
+    public void excluirImagemS3(String fileName) {
+
+        String key = "images/" + fileName;
+
+        DeleteObjectRequest deleteRequest = DeleteObjectRequest.builder()
+                .bucket(bucketName)
+                .key(key)
+                .build();
+        
+        s3Client.deleteObject(deleteRequest);
+
     }
 
     private File convertMultiPartFileToFile(MultipartFile file) {

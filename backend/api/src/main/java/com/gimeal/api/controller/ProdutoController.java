@@ -4,6 +4,7 @@ import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -41,6 +42,18 @@ public class ProdutoController {
         ProdutoResponse produtoResponse = produtoService.buscarPorId(id);
 
         return ResponseEntity.ok(produtoResponse);
+    }
+
+    @DeleteMapping("/{id}") 
+    public ResponseEntity<Void> excluirProduto(@PathVariable String id) {
+
+        if (produtoService.buscarPorId(id) == null) {
+            return ResponseEntity.notFound().build();
+        }
+
+        produtoService.excluirProduto(id);
+
+        return ResponseEntity.noContent().build();
     }
 
 }
