@@ -21,11 +21,18 @@ const BarraInferior = styled.div`
   z-index: 100;
 `;
 
-function BarraInferiorCarrinho({ onClickCarrinho }) {
+function BarraInferiorCarrinho({ quantidade = 0, total = 0, onClickCarrinho }) {
+  const totalFormatado = total.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+
+  const texto =
+    quantidade === 0
+      ? 'NENHUM ITEM ADICIONADO'
+      : `VER PEDIDO • ${quantidade} ITEM(NS) • ${totalFormatado}`;
+
   return (
     <BarraInferior>
       <Button 
-        texto="NENHUM ITEM ADICIONADO" 
+        texto={texto}
         icone={<FaBagShopping size={16} />}
         altura="48px"
         largura="100%"

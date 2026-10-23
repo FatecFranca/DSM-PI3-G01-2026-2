@@ -10,6 +10,15 @@ import ModalPrato from "./Components/ModalPrato";
 
 import "../../styles/MenuAdm.css";
 
+// Tamanhos padrão de todo prato novo (o admin marca quais valem)
+function copiarTamanhos() {
+    return [
+        { id: 'tam-pequeno', nome: 'Pequeno', preco: '', ativo: false },
+        { id: 'tam-medio', nome: 'Médio', preco: '', ativo: false },
+        { id: 'tam-grande', nome: 'Grande', preco: '', ativo: false },
+    ];
+}
+
 function Menu() {
     const {
         categorias,
@@ -40,6 +49,12 @@ function Menu() {
     const [precoPrato, setPrecoPrato] = useState('');
     const [imagemPrato, setImagemPrato] = useState('');
 
+    // Listas configuráveis do prato (o cliente vê isso ao escolher o produto)
+    const [ingredientesPrato, setIngredientesPrato] = useState([]); // [{ id, nome }]
+    const [adicionaisPrato, setAdicionaisPrato] = useState([]);     // [{ id, nome, preco }]
+    const [tamanhosPrato, setTamanhosPrato] = useState(copiarTamanhos()); // [{ id, nome, preco, ativo }]
+    const [combosPrato, setCombosPrato] = useState([]);             // [{ id, nome, preco, produtosIds }]
+
     function handleCriarCategoria(e) {
         e.preventDefault();
         if (!nomeCat.trim()) return;
@@ -57,7 +72,11 @@ function Menu() {
             nome: nomePrato,
             descricao: descricaoPrato,
             preco: precoPrato,
-            imagem: imagemPrato
+            imagem: imagemPrato,
+            ingredientes: ingredientesPrato,
+            adicionais: adicionaisPrato,
+            tamanhos: tamanhosPrato,
+            combos: combosPrato
         };
 
         if (pratoEmEdicaoId) {
@@ -75,6 +94,10 @@ function Menu() {
         setDescricaoPrato('');
         setPrecoPrato('');
         setImagemPrato('');
+        setIngredientesPrato([]);
+        setAdicionaisPrato([]);
+        setTamanhosPrato(copiarTamanhos());
+        setCombosPrato([]);
         setIsModalPratoOpen(true);
     }
 
@@ -84,6 +107,11 @@ function Menu() {
         setDescricaoPrato(produto.descricao);
         setPrecoPrato(produto.preco);
         setImagemPrato(produto.imagem || '');
+        // Pratos antigos podem não ter esses campos ainda
+        setIngredientesPrato(produto.ingredientes || []);
+        setAdicionaisPrato(produto.adicionais || []);
+        setTamanhosPrato(produto.tamanhos?.length ? produto.tamanhos : copiarTamanhos());
+        setCombosPrato(produto.combos || []);
         setIsModalPratoOpen(true);
     }
 
@@ -167,6 +195,17 @@ function Menu() {
                 setPrecoPrato={setPrecoPrato}
                 imagemPrato={imagemPrato}
                 onUploadImagem={handleUploadImagem}
+                ingredientes={ingredientesPrato}
+                setIngredientes={setIngredientesPrato}
+                adicionais={adicionaisPrato}
+                setAdicionais={setAdicionaisPrato}
+                tamanhos={tamanhosPrato}
+                setTamanhos={setTamanhosPrato}
+                combos={combosPrato}
+                setCombos={setCombosPrato}
+                categorias={categorias}
+                produtos={produtos}
+                produtoAtualId={pratoEmEdicaoId}
             />
         </div>
     );
