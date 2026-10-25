@@ -3,7 +3,7 @@ package com.gimeal.api.models;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
-@Document (collection = "Categoria")
+@Document (collection = "categoria")
 public class Categoria {
 
     @Id 

@@ -27,7 +27,7 @@ public class Produto {
     private String ingredienteBaseId;
 
     @Field(targetType = FieldType.OBJECT_ID)
-    private String IngredientesAdicionaisId;
+    private String ingredientesAdicionaisId;
 
     @Field(targetType = FieldType.OBJECT_ID)
     private String produtoCombo;
@@ -55,7 +55,7 @@ public class Produto {
             this.codigoImagem = codigoImagem;
             this.categoriaId = categoriaId;
             this.ingredienteBaseId = ingredienteBaseId;
-            this.IngredientesAdicionaisId = ingredientesAdicionaisId;
+            this.ingredientesAdicionaisId = ingredientesAdicionaisId;
             this.produtoCombo = produtoCombo;
         }
 
@@ -124,11 +124,11 @@ public class Produto {
     }
 
     public String getIngredientesAdicionaisId() {
-        return IngredientesAdicionaisId;
+        return ingredientesAdicionaisId;
     }
 
     public void setIngredientesAdicionaisId(String ingredientesAdicionaisId) {
-        IngredientesAdicionaisId = ingredientesAdicionaisId;
+        this.ingredientesAdicionaisId = ingredientesAdicionaisId;
     }
 
     public String getProdutoCombo() {
