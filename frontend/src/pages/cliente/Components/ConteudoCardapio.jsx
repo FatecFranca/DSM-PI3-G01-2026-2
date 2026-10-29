@@ -802,7 +802,7 @@ const BotaoCancelar = styled.button`
   height: 52px;
   border-radius: 10px;
   border: none;
-  background: #8E806A;
+  background: #610027;
   color: #FFF;
   font-size: 15px;
   cursor: pointer;
@@ -1066,4 +1066,4 @@ function ConteudoCardapio() {
   );
 }
 
-export default ConteudoCardapio;
+export default ConteudoCardapio;''
