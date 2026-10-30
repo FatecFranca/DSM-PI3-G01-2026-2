@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import styled from 'styled-components';
-import { X, ArrowLeft, Trash2, Pencil, Edit } from 'lucide-react';
+import { X, ArrowLeft, Trash2, Pencil, Edit, Star, ChevronRight } from 'lucide-react';
 import cafe from '../../../assets/cafe.png';
 import croassant from '../../../assets/croassats.jpg';
 import donnuts from '../../../assets/donnuts.png';
@@ -39,8 +39,71 @@ function produtosDoCombo(combo, produtos) {
     .filter(Boolean);
 }
 
+const senhaComZeros = (pedido) => String(pedido.senha || 0).padStart(3, '0');
+
+// Filtro da barra inferior: só desaparece após o cliente interagir com a avaliação ou fechar o aviso de entregue
+function pedidoPendente(pedido) {
+  if (pedido.status !== 'entregue') return true;
+  return !(pedido.avaliacao || pedido.avaliacaoPulada || pedido.fechouAvaliacao);
+}
+
+function formatarContagem(ms) {
+  const total = Math.max(0, Math.ceil(ms / 1000));
+  return `${String(Math.floor(total / 60)).padStart(2, '0')}: ${String(total % 60).padStart(2, '0')}`;
+}
+
+function dadosDeStatus(pedido, agora) {
+  if (pedido.status === 'fila') {
+    return {
+      aba: 'Pedido em andamento',
+      contagem: '--: --',
+      mensagem: 'pedido enviado! aguardando a cozinha iniciar o preparo...',
+      resumo: 'aguardando a cozinha',
+    };
+  }
+
+  if (pedido.status === 'preparando') {
+    const tempoMin = pedido.tempoPreparoMin || 10;
+    const iniciadoEm = pedido.iniciadoEm || agora;
+    const restante = tempoMin * 60000 - (agora - iniciadoEm);
+    return {
+      aba: 'Pedido em andamento',
+      contagem: restante > 0 ? formatarContagem(restante) : '00: 00',
+      mensagem: restante > 0 
+        ? 'pedido está sendo preparado...' 
+        : 'estamos finalizando o seu pedido, só mais um instante...',
+      resumo: restante > 0 ? `preparando · ${formatarContagem(restante)}` : 'finalizando...',
+    };
+  }
+
+  if (pedido.status === 'pronto') {
+    return {
+      aba: 'Pedido em andamento',
+      contagem: '00: 00',
+      mensagem: `pedido pronto! chamaremos pela senha ${senhaComZeros(pedido)}`,
+      resumo: 'pronto!',
+    };
+  }
+
+  return { 
+    aba: 'Pedido entregue', 
+    contagem: '00: 00', 
+    mensagem: 'pedido entregue', 
+    resumo: 'avalie o seu pedido' 
+  };
+}
+
+function useAgora() {
+  const [agora, setAgora] = useState(() => Date.now());
+  useEffect(() => {
+    const timer = setInterval(() => setAgora(Date.now()), 1000);
+    return () => clearInterval(timer);
+  }, []);
+  return agora;
+}
+
 // ---------------------------------------------------------------
-// Estilos da tela de personalização / carrinho
+// Estilos
 // ---------------------------------------------------------------
 const Tela = styled.div`
   position: fixed;
@@ -85,6 +148,195 @@ const Corpo = styled.div`
   gap: 16px;
 `;
 
+const CorpoStatus = styled(Corpo)`
+  max-width: 500px;
+  gap: 14px;
+`;
+
+const CardAba = styled.div`
+  background: #FFF;
+  border: 1px solid #E8E4E0;
+  border-radius: 10px;
+  padding: 14px 16px 0;
+
+  span {
+    display: block;
+    text-align: center;
+    font-size: 13px;
+    color: #4A2E18;
+    padding-bottom: 10px;
+    border-bottom: 3px solid #5C1D24;
+    width: 50%;
+    margin: 0 auto;
+    font-weight: 600;
+  }
+`;
+
+const TituloStatus = styled.h2`
+  margin: 8px 0 0;
+  text-align: center;
+  font-size: 18px;
+  color: #5C1D24;
+`;
+
+const SubtituloStatus = styled.p`
+  margin: 0;
+  text-align: center;
+  font-size: 13px;
+  font-weight: 600;
+  color: #8B5A3A;
+`;
+
+const ChipsPedidos = styled.div`
+  display: flex;
+  gap: 8px;
+  justify-content: center;
+  flex-wrap: wrap;
+`;
+
+const ChipPedido = styled.button`
+  border: 1.5px solid #5C1D24;
+  background: ${({ $ativo }) => ($ativo ? '#5C1D24' : 'transparent')};
+  color: ${({ $ativo }) => ($ativo ? '#FFF' : '#5C1D24')};
+  border-radius: 999px;
+  padding: 6px 14px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+`;
+
+const BlocoSenha = styled.div`
+  text-align: center;
+  color: #6B5B53;
+  font-size: 13px;
+
+  strong {
+    display: block;
+    font-size: 46px;
+    line-height: 1.1;
+    color: #5C1D24;
+    letter-spacing: 4px;
+  }
+`;
+
+const CaixaContagem = styled.div`
+  background: #FFF;
+  border-radius: 16px;
+  padding: 16px;
+  text-align: center;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08);
+
+  small {
+    display: block;
+    color: #6B5B53;
+    font-size: 11px;
+    margin-bottom: 4px;
+  }
+
+  strong {
+    display: block;
+    font-size: 38px;
+    color: #5C1D24;
+    font-weight: 700;
+    letter-spacing: 2px;
+  }
+
+  p {
+    margin: 8px 0 0;
+    font-size: 12px;
+    color: #8B5A3A;
+  }
+`;
+
+const BlocoAvaliacao = styled.div`
+  background: #FFF;
+  border-radius: 16px;
+  padding: 16px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  text-align: center;
+
+  h3 { margin: 0; font-size: 16px; color: #5C1D24; }
+  p { margin: 0; font-size: 12px; color: #6B5B53; }
+`;
+
+const Estrelas = styled.div`
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+
+  button {
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 0;
+    color: #D9A8A8;
+    &.ativa { color: #EAB308; }
+  }
+`;
+
+const CampoComentario = styled.textarea`
+  width: 100%;
+  min-height: 80px;
+  border-radius: 10px;
+  border: 1px solid #D9D2CB;
+  padding: 10px;
+  font-family: inherit;
+  font-size: 13px;
+  box-sizing: border-box;
+  resize: vertical;
+
+  &:focus {
+    outline: none;
+    border-color: #8B5A3A;
+  }
+`;
+
+const LinkPular = styled.button`
+  background: none;
+  border: none;
+  color: #8B5A3A;
+  font-size: 13px;
+  cursor: pointer;
+  text-decoration: underline;
+`;
+
+const MensagemObrigado = styled.div`
+  background: #FFF;
+  border-radius: 16px;
+  padding: 24px;
+  text-align: center;
+  color: #5C1D24;
+  font-weight: 600;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08);
+`;
+
+const FaixaAcompanhamento = styled.button`
+  width: 100%;
+  max-width: 720px;
+  margin: 0 auto 8px;
+  background: #8B5A3A;
+  color: #FFF;
+  border: none;
+  border-radius: 12px;
+  padding: 12px 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  cursor: pointer;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.12);
+
+  div {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    strong { font-size: 14px; }
+    span { font-size: 11px; opacity: 0.9; }
+  }
+`;
+
 const CardDoProduto = styled.div`
   background: #FFF;
   border-radius: 16px;
@@ -110,14 +362,10 @@ const ImagemDoProduto = styled.div`
   cursor: pointer;
   transition: opacity 0.1s ease;
 
-  &:hover {
-    opacity: 0.9;
-  }
-
+  &:hover { opacity: 0.9; }
   img { width: 100%; height: 100%; object-fit: cover; }
 `;
 
-// Estilos para o Zoom da imagem
 const ModalZoomImagem = styled.div`
   position: fixed;
   inset: 0;
@@ -199,7 +447,6 @@ const BotaoVoltar = styled.button`
 
 const TituloEtapa = styled.div`
   flex: 1;
-
   strong { display: block; color: #5C1D24; font-size: 16px; }
   span { display: block; color: #6B5B53; font-size: 11px; margin-top: 2px; }
 `;
@@ -238,23 +485,11 @@ const CardRevisaoItem = styled.div`
     display: flex;
     flex-direction: column;
     gap: 2px;
-    
-    strong {
-      color: #8B5A3A;
-      font-size: 12px;
-      font-weight: 600;
-    }
-
-    span {
-      color: #6B5B53;
-      font-size: 13px;
-    }
+    strong { color: #8B5A3A; font-size: 12px; font-weight: 600; }
+    span { color: #6B5B53; font-size: 13px; }
   }
 
-  svg {
-    color: #8B5A3A;
-    flex-shrink: 0;
-  }
+  svg { color: #8B5A3A; flex-shrink: 0; }
 `;
 
 const ControleQuantidade = styled.div`
@@ -263,11 +498,7 @@ const ControleQuantidade = styled.div`
   justify-content: space-between;
   margin-top: 8px;
 
-  span {
-    color: #5C1D24;
-    font-size: 15px;
-    font-weight: bold;
-  }
+  span { color: #5C1D24; font-size: 15px; font-weight: bold; }
 
   .botoes-qtd {
     display: flex;
@@ -287,22 +518,9 @@ const ControleQuantidade = styled.div`
       justify-content: center;
     }
 
-    .btn-menos {
-      background: #DDD5CD;
-      color: #5C1D24;
-    }
-
-    .btn-mais {
-      background: #B38686;
-      color: #FFF;
-    }
-
-    strong {
-      font-size: 15px;
-      color: #4A2E18;
-      min-width: 16px;
-      text-align: center;
-    }
+    .btn-menos { background: #DDD5CD; color: #5C1D24; }
+    .btn-mais { background: #B38686; color: #FFF; }
+    strong { font-size: 15px; color: #4A2E18; min-width: 16px; text-align: center; }
   }
 `;
 
@@ -334,7 +552,6 @@ const MiniaturaOpcao = styled.div`
   border-radius: 12px;
   background: #ECE9E3;
   overflow: hidden;
-
   img { width: 100%; height: 100%; object-fit: cover; }
 `;
 
@@ -396,6 +613,79 @@ const ContainerGradeRespiro = styled.div`
   margin: 0 auto;
 `;
 
+const TituloPagina = styled.h2`
+  margin: 0;
+  color: #5C1D24;
+  font-size: 20px;
+`;
+
+const CardItemPedido = styled.div`
+  background: #FFF;
+  border-radius: 16px;
+  padding: 14px 16px;
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08);
+  cursor: pointer;
+  transition: transform 0.1s ease, box-shadow 0.1s ease;
+
+  &:hover { box-shadow: 0 6px 14px rgba(0, 0, 0, 0.12); }
+`;
+
+const InfoItemPedido = styled.div`
+  flex: 1;
+  min-width: 0;
+
+  strong { display: block; color: #4A2E18; font-size: 15px; margin-bottom: 4px; }
+  p { margin: 2px 0; color: #6B5B53; font-size: 12px; line-height: 1.4; }
+`;
+
+const ValorItemPedido = styled.span`
+  color: #5C1D24;
+  font-weight: 700;
+  font-size: 15px;
+  white-space: nowrap;
+`;
+
+const BotaoLixeira = styled.button`
+  background: none;
+  border: none;
+  color: #888;
+  cursor: pointer;
+  padding: 4px;
+  display: flex;
+  z-index: 2;
+`;
+
+const PedidoVazio = styled.p`
+  text-align: center;
+  color: #888;
+  padding: 40px 0;
+`;
+
+const BotaoSecundario = styled.button`
+  width: 100%;
+  height: 52px;
+  border-radius: 10px;
+  border: 1.5px solid #5C1D24;
+  background: transparent;
+  color: #5C1D24;
+  font-size: 15px;
+  cursor: pointer;
+`;
+
+const BotaoCancelar = styled.button`
+  width: 100%;
+  height: 52px;
+  border-radius: 10px;
+  border: none;
+  background: #610027;
+  color: #FFF;
+  font-size: 15px;
+  cursor: pointer;
+`;
+
 function Opcao({ tipo, name, marcado, onChange, nome, detalhe, preco, comMiniatura, imagem, semIndicador }) {
   return (
     <OpcaoLinha $marcado={marcado}>
@@ -423,6 +713,153 @@ function Opcao({ tipo, name, marcado, onChange, nome, detalhe, preco, comMiniatu
 }
 
 // ---------------------------------------------------------------
+// Modal de Acompanhamento do Pedido + Avaliação
+// ---------------------------------------------------------------
+export function TelaAcompanharPedido({ pedidos, idAtivoInicial, onFechar, onAtualizarPedido }) {
+  const agora = useAgora();
+  // Mostramos todos os pedidos do usuário no modal para que ele consiga ver o status e histórico
+  const [idAtivo, setIdAtivo] = useState(idAtivoInicial || pedidos[0]?.id);
+  const [nota, setNota] = useState(0);
+  const [comentario, setComentario] = useState('');
+  const [enviado, setEnviado] = useState(false);
+
+  const pedido = pedidos.find((p) => p.id === idAtivo) || pedidos[0];
+
+  useEffect(() => {
+    setNota(0);
+    setComentario('');
+    setEnviado(false);
+  }, [idAtivo]);
+
+  // Função para fechar marcando o pedido como visualizado/fechado na etapa de avaliação
+  function lidarComFechamento() {
+    if (pedido && pedido.status === 'entregue' && !pedido.avaliacao && !pedido.avaliacaoPulada) {
+      onAtualizarPedido({ ...pedido, fechouAvaliacao: true });
+    }
+    onFechar();
+  }
+
+  if (!pedido) {
+    return (
+      <Tela role="dialog" aria-label="Sem pedidos">
+        <Topo>
+          <Header />
+          <BotaoFechar type="button" onClick={onFechar} aria-label="Fechar"><X size={22} /></BotaoFechar>
+        </Topo>
+        <CorpoStatus>
+          <MensagemObrigado>Você não possui nenhum pedido cadastrado.</MensagemObrigado>
+          <BotaoAvancar type="button" onClick={onFechar}>Navegar pelo Cardápio</BotaoAvancar>
+        </CorpoStatus>
+      </Tela>
+    );
+  }
+
+  const { aba, contagem, mensagem } = dadosDeStatus(pedido, agora);
+  const ehEntregue = pedido.status === 'entregue';
+
+  function enviarAvaliacao() {
+    if (nota === 0) return;
+    onAtualizarPedido({ ...pedido, avaliacao: { nota, comentario }, fechouAvaliacao: true });
+    setEnviado(true);
+  }
+
+  function pularAvaliacao() {
+    onAtualizarPedido({ ...pedido, avaliacaoPulada: true, fechouAvaliacao: true });
+    onFechar();
+  }
+
+  return (
+    <Tela role="dialog" aria-modal="true" aria-label="Acompanhar Pedido">
+      <Topo>
+        <Header />
+        <BotaoFechar type="button" onClick={lidarComFechamento} aria-label="Fechar">
+          <X size={22} />
+        </BotaoFechar>
+      </Topo>
+
+      <CorpoStatus>
+        <CardAba>
+          <span>{aba}</span>
+        </CardAba>
+
+        {pedidos.length > 1 && (
+          <ChipsPedidos>
+            {pedidos.map((p) => (
+              <ChipPedido
+                key={p.id}
+                $ativo={p.id === pedido.id}
+                onClick={() => setIdAtivo(p.id)}
+              >
+                Senha {senhaComZeros(p)}
+              </ChipPedido>
+            ))}
+          </ChipsPedidos>
+        )}
+
+        {!ehEntregue ? (
+          <>
+            <TituloStatus>Verificar Status do Pedido</TituloStatus>
+            <SubtituloStatus>Olá {pedido.nomeCliente}, acompanhe seu pedido!</SubtituloStatus>
+
+            <BlocoSenha>
+              Senha:
+              <strong>{senhaComZeros(pedido)}</strong>
+            </BlocoSenha>
+
+            <CaixaContagem>
+              <small>tempo previsto para ficar pronto</small>
+              <strong>{contagem}</strong>
+              <p>{mensagem}</p>
+            </CaixaContagem>
+          </>
+        ) : enviado ? (
+          <MensagemObrigado>Obrigado pela avaliação!</MensagemObrigado>
+        ) : pedido.avaliacao || pedido.avaliacaoPulada ? (
+          <MensagemObrigado>Pedido entregue e avaliado com sucesso!</MensagemObrigado>
+        ) : (
+          <BlocoAvaliacao>
+            <h3>Chegou a hora de avaliar</h3>
+            <p>Sua opinião é muito importante para nós!</p>
+
+            <Estrelas>
+              {[1, 2, 3, 4, 5].map((n) => (
+                <button
+                  key={n}
+                  type="button"
+                  className={n <= nota ? 'ativa' : ''}
+                  onClick={() => setNota(n)}
+                  aria-label={`Nota ${n}`}
+                >
+                  <Star size={32} fill={n <= nota ? '#EAB308' : 'none'} />
+                </button>
+              ))}
+            </Estrelas>
+
+            <CampoComentario
+              placeholder="Adicionar comentário (opcional)"
+              value={comentario}
+              onChange={(e) => setComentario(e.target.value)}
+            />
+
+            <BotaoAvancar type="button" onClick={enviarAvaliacao} disabled={nota === 0} style={{ opacity: nota === 0 ? 0.6 : 1 }}>
+              Enviar
+            </BotaoAvancar>
+
+            <LinkPular type="button" onClick={pularAvaliacao}>Agora não</LinkPular>
+          </BlocoAvaliacao>
+        )}
+
+        <Rodape style={{ marginTop: 'auto' }}>
+          <BotaoAvancar type="button" onClick={lidarComFechamento}>
+            Navegar pelo Cardápio
+          </BotaoAvancar>
+        </Rodape>
+      </CorpoStatus>
+    </Tela>
+  );
+}
+
+// ---------------------------------------------------------------
 // Modal de personalização do produto
 // ---------------------------------------------------------------
 export function ModalProdutoCliente({ produto, produtos, itemInicial = null, onFechar, onConfirmar, onRemoverItem }) {
@@ -433,18 +870,10 @@ export function ModalProdutoCliente({ produto, produtos, itemInicial = null, onF
 
   const SUBTITULO = 'personalize o seu prato com base nas suas preferências';
   const etapas = [];
-  if (tamanhosAtivos.length > 0) {
-    etapas.push({ tipo: 'tamanho', titulo: 'Escolha o tamanho', subtitulo: SUBTITULO });
-  }
-  if (ingredientes.length > 0) {
-    etapas.push({ tipo: 'ingredientes', titulo: 'Quer retirar algum item do seu Pedido?!', subtitulo: SUBTITULO });
-  }
-  if (adicionais.length > 0) {
-    etapas.push({ tipo: 'adicionais', titulo: 'Quer adicionar algo mais?', subtitulo: SUBTITULO });
-  }
-  if (combos.length > 0) {
-    etapas.push({ tipo: 'combo', titulo: 'Quer turbinar o seu Prato?!', subtitulo: SUBTITULO });
-  }
+  if (tamanhosAtivos.length > 0) etapas.push({ tipo: 'tamanho', titulo: 'Escolha o tamanho', subtitulo: SUBTITULO });
+  if (ingredientes.length > 0) etapas.push({ tipo: 'ingredientes', titulo: 'Quer retirar algum item do seu Pedido?!', subtitulo: SUBTITULO });
+  if (adicionais.length > 0) etapas.push({ tipo: 'adicionais', titulo: 'Quer adicionar algo mais?', subtitulo: SUBTITULO });
+  if (combos.length > 0) etapas.push({ tipo: 'combo', titulo: 'Quer turbinar o seu Prato?!', subtitulo: SUBTITULO });
   etapas.push({ tipo: 'revisao', titulo: 'Revisar itens do Pedido', subtitulo: '' });
 
   const selecaoAnterior = itemInicial?.selecao;
@@ -466,14 +895,8 @@ export function ModalProdutoCliente({ produto, produtos, itemInicial = null, onF
   const adicionaisEscolhidos = adicionais.filter((a) => adicionaisSel.includes(a.id));
   const combo = combos.find((c) => c.id === comboId) || null;
 
-  const precoBase =
-    tamanho && paraNumero(tamanho.preco) > 0 ? paraNumero(tamanho.preco) : paraNumero(produto.preco);
-
-  const subtotalUnidade =
-    precoBase +
-    adicionaisEscolhidos.reduce((soma, a) => soma + paraNumero(a.preco), 0) +
-    (combo ? paraNumero(combo.preco) : 0);
-
+  const precoBase = tamanho && paraNumero(tamanho.preco) > 0 ? paraNumero(tamanho.preco) : paraNumero(produto.preco);
+  const subtotalUnidade = precoBase + adicionaisEscolhidos.reduce((soma, a) => soma + paraNumero(a.preco), 0) + (combo ? paraNumero(combo.preco) : 0);
   const subtotal = subtotalUnidade * quantidade;
 
   const etapa = etapas[etapaAtual];
@@ -515,17 +938,12 @@ export function ModalProdutoCliente({ produto, produtos, itemInicial = null, onF
       <Tela role="dialog" aria-modal="true" aria-label={produto.nome}>
         <Topo>
           <Header />
-          <BotaoFechar type="button" onClick={onFechar} aria-label="Fechar">
-            <X size={22} />
-          </BotaoFechar>
+          <BotaoFechar type="button" onClick={onFechar} aria-label="Fechar"><X size={22} /></BotaoFechar>
         </Topo>
 
         <Corpo>
           <CardDoProduto>
-            <ImagemDoProduto 
-              onClick={() => produto.imagem && setZoomImagemAberto(true)}
-              title="Clique para ampliar a foto"
-            >
+            <ImagemDoProduto onClick={() => produto.imagem && setZoomImagemAberto(true)} title="Clique para ampliar a foto">
               {produto.imagem ? <img src={produto.imagem} alt={produto.nome} /> : 'Sem foto'}
             </ImagemDoProduto>
             <TextoDoProduto>
@@ -715,11 +1133,7 @@ export function ModalProdutoCliente({ produto, produtos, itemInicial = null, onF
       {zoomImagemAberto && (
         <ModalZoomImagem onClick={() => setZoomImagemAberto(false)}>
           <div className="container-foto-zoom" onClick={(e) => e.stopPropagation()}>
-            <BotaoFecharZoom 
-              type="button" 
-              onClick={() => setZoomImagemAberto(false)} 
-              aria-label="Fechar imagem"
-            >
+            <BotaoFecharZoom type="button" onClick={() => setZoomImagemAberto(false)} aria-label="Fechar imagem">
               <X size={22} />
             </BotaoFecharZoom>
             <img src={produto.imagem} alt={produto.nome} />
@@ -731,83 +1145,8 @@ export function ModalProdutoCliente({ produto, produtos, itemInicial = null, onF
 }
 
 // ---------------------------------------------------------------
-// Tela do carrinho
+// Tela do Carrinho
 // ---------------------------------------------------------------
-const TituloPagina = styled.h2`
-  margin: 0;
-  color: #5C1D24;
-  font-size: 20px;
-`;
-
-const CardItemPedido = styled.div`
-  background: #FFF;
-  border-radius: 16px;
-  padding: 14px 16px;
-  display: flex;
-  gap: 12px;
-  align-items: center;
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08);
-  cursor: pointer;
-  transition: transform 0.1s ease, box-shadow 0.1s ease;
-
-  &:hover {
-    box-shadow: 0 6px 14px rgba(0, 0, 0, 0.12);
-  }
-`;
-
-const InfoItemPedido = styled.div`
-  flex: 1;
-  min-width: 0;
-
-  strong { display: block; color: #4A2E18; font-size: 15px; margin-bottom: 4px; }
-  p { margin: 2px 0; color: #6B5B53; font-size: 12px; line-height: 1.4; }
-`;
-
-const ValorItemPedido = styled.span`
-  color: #5C1D24;
-  font-weight: 700;
-  font-size: 15px;
-  white-space: nowrap;
-`;
-
-const BotaoLixeira = styled.button`
-  background: none;
-  border: none;
-  color: #888;
-  cursor: pointer;
-  padding: 4px;
-  display: flex;
-  z-index: 2;
-`;
-
-const PedidoVazio = styled.p`
-  text-align: center;
-  color: #888;
-  padding: 40px 0;
-`;
-
-const BotaoSecundario = styled.button`
-  width: 100%;
-  height: 52px;
-  border-radius: 10px;
-  border: 1.5px solid #5C1D24;
-  background: transparent;
-  color: #5C1D24;
-  font-size: 15px;
-  cursor: pointer;
-`;
-
-const BotaoCancelar = styled.button`
-  width: 100%;
-  height: 52px;
-  border-radius: 10px;
-  border: none;
-  background: #610027;
-  color: #FFF;
-  font-size: 15px;
-  cursor: pointer;
-`;
-
 export function TelaCarrinho({ itens, onEditarItem, onRemoverItem, onCancelarPedido, onFechar, onAbrirCheckout }) {
   const total = itens.reduce((soma, item) => soma + item.total, 0);
 
@@ -923,11 +1262,11 @@ export function TelaCarrinho({ itens, onEditarItem, onRemoverItem, onCancelarPed
 }
 
 // ---------------------------------------------------------------
-// Conteúdo principal da página do cardápio
+// Componente Principal
 // ---------------------------------------------------------------
 function ConteudoCardapio() {
   const imagensCardapio = [cafe, croassant, donnuts];
-  const { categorias, produtos } = useCardapio();
+  const { categorias, produtos, pedidos = [], setPedidos, adicionarPedido } = useCardapio();
   const [categoriaAtiva, setCategoriaAtiva] = useState('todos');
   const [busca, setBusca] = useState('');
 
@@ -936,6 +1275,28 @@ function ConteudoCardapio() {
   const [carrinhoAberto, setCarrinhoAberto] = useState(false);
   const [checkoutAberto, setCheckoutAberto] = useState(false);
   const [itemEmEdicao, setItemEmEdicao] = useState(null);
+
+  // Guarda quais IDs de pedidos pertencem a este aparelho/navegador
+  const [meusIds, setMeusIds] = useState(() => {
+    try {
+      return JSON.parse(localStorage.getItem('meusPedidosIds') || '[]');
+    } catch {
+      return [];
+    }
+  });
+
+  const [acompanharAberto, setAcompanharAberto] = useState(false);
+  const [idAcompanharAtivo, setIdAcompanharAtivo] = useState(null);
+
+  const agora = useAgora();
+
+  useEffect(() => {
+    localStorage.setItem('meusPedidosIds', JSON.stringify(meusIds));
+  }, [meusIds]);
+
+  const meusPedidos = pedidos.filter((p) => meusIds.includes(p.id));
+  const pendentes = meusPedidos.filter(pedidoPendente);
+  const primeiroPendente = pendentes[0];
 
   const totalCarrinho = carrinho.reduce((soma, item) => soma + item.total, 0);
 
@@ -963,7 +1324,7 @@ function ConteudoCardapio() {
     }
     setItemEmEdicao(item);
     setProdutoSelecionado(produto);
-    setCarrinhoAberto(false); // Fecha o carrinho para abrir a modal de edição na aba de revisão
+    setCarrinhoAberto(false);
   }
 
   function fecharProduto() {
@@ -990,9 +1351,37 @@ function ConteudoCardapio() {
   }
 
   function finalizarPedidoSucesso(dadosPedido) {
-    window.alert(`Pedido realizado com sucesso para ${dadosPedido.nomeCliente}!`);
+    const proximaSenha = (pedidos.reduce((max, p) => Math.max(max, p.senha || 0), 0) || 0) + 1;
+
+    const novoPedido = {
+      id: crypto.randomUUID(),
+      senha: proximaSenha,
+      status: 'fila',
+      criadoEm: Date.now(),
+      itens: carrinho,
+      total: totalCarrinho,
+      ...dadosPedido,
+    };
+
+    if (adicionarPedido) {
+      adicionarPedido(novoPedido);
+    } else if (setPedidos) {
+      setPedidos((atual) => [novoPedido, ...atual]);
+    }
+
+    setMeusIds((prev) => [...prev, novoPedido.id]);
     setCarrinho([]);
     setCheckoutAberto(false);
+    setIdAcompanharAtivo(novoPedido.id);
+    setAcompanharAberto(true);
+  }
+
+  function atualizarPedidoLocal(pedidoAtualizado) {
+    if (setPedidos) {
+      setPedidos((atual) =>
+        atual.map((p) => (p.id === pedidoAtualizado.id ? pedidoAtualizado : p))
+      );
+    }
   }
 
   const produtosFiltrados = produtos.filter((produto) => {
@@ -1021,6 +1410,27 @@ function ConteudoCardapio() {
           />
         </ContainerGradeRespiro>
       </div>
+
+      {pendentes.length > 0 && !carrinhoAberto && !checkoutAberto && !acompanharAberto && (
+        <div style={{ position: 'fixed', bottom: carrinho.length > 0 ? '80px' : '16px', left: 0, right: 0, zIndex: 180, padding: '0 16px' }}>
+          <FaixaAcompanhamento
+            onClick={() => {
+              setIdAcompanharAtivo(primeiroPendente?.id || meusPedidos[0]?.id);
+              setAcompanharAberto(true);
+            }}
+          >
+            <div>
+              <strong>
+                {pendentes.length > 1
+                  ? `Meus pedidos (${pendentes.length})`
+                  : `Meu pedido · Senha ${senhaComZeros(primeiroPendente || meusPedidos[0])}`}
+              </strong>
+              <span>{dadosDeStatus(primeiroPendente || meusPedidos[0], agora).resumo}</span>
+            </div>
+            <ChevronRight size={20} />
+          </FaixaAcompanhamento>
+        </div>
+      )}
 
       <BarraInferiorCarrinho 
         quantidade={carrinho.length}
@@ -1062,8 +1472,17 @@ function ConteudoCardapio() {
           onRemoverItem={removerItem}
         />
       )}
+
+      {acompanharAberto && (
+        <TelaAcompanharPedido
+          pedidos={meusPedidos}
+          idAtivoInicial={idAcompanharAtivo}
+          onFechar={() => setAcompanharAberto(false)}
+          onAtualizarPedido={atualizarPedidoLocal}
+        />
+      )}
     </>
   );
 }
 
-export default ConteudoCardapio;''
+export default ConteudoCardapio;

@@ -304,11 +304,14 @@ export default function TelaCheckout({ itens, total, onFechar, onFinalizarPedido
     }
   }
 
-  function concluirPedido() {
+  // "forma" é passada direto nos cliques de Cartão/Dinheiro: o setFormaPagamento
+  // só atualiza o estado na próxima renderização, então ler formaPagamento aqui
+  // logo depois dele devolveria o valor antigo (null) e o pedido sairia sem forma de pagamento.
+  function concluirPedido(forma = formaPagamento) {
     onFinalizarPedidoSucesso({
       nomeCliente: nomeCliente.trim(),
       tipoConsumo,
-      formaPagamento,
+      formaPagamento: forma,
       itens,
       total,
     });
@@ -412,7 +415,7 @@ export default function TelaCheckout({ itens, total, onFechar, onFinalizarPedido
                 $marcado={formaPagamento === 'cartao'}
                 onClick={() => {
                   setFormaPagamento('cartao');
-                  concluirPedido(); // Finaliza se for cartão
+                  concluirPedido('cartao'); // Finaliza se for cartão
                 }}
               >
                 <CreditCard size={28} />
@@ -424,7 +427,7 @@ export default function TelaCheckout({ itens, total, onFechar, onFinalizarPedido
                 $marcado={formaPagamento === 'dinheiro'}
                 onClick={() => {
                   setFormaPagamento('dinheiro');
-                  concluirPedido(); // Finaliza se for dinheiro
+                  concluirPedido('dinheiro'); // Finaliza se for dinheiro
                 }}
               >
                 <Banknote size={28} />
