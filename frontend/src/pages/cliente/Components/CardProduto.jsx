@@ -1,6 +1,5 @@
-import React from 'react';
+import React, { useState } from 'react';
 import styled from 'styled-components';
-import Button from '../../../componets/Button/Button';
 import { FaPlus } from 'react-icons/fa6';
 
 const CardProdutoContainer = styled.div`
@@ -11,6 +10,8 @@ const CardProdutoContainer = styled.div`
   display: flex;
   flex-direction: column;
   position: relative;
+  cursor: pointer;
+  transition: all 0.2s ease;
 `;
 
 const ImagemContainer = styled.div`
@@ -50,11 +51,35 @@ const CardTitulo = styled.h3`
   line-height: 1.2;
 `;
 
+
 const CardDescricao = styled.p`
   font-size: 11px;
   color: #888;
-  margin: 0 0 12px 0;
+  margin: 0 0 4px 0;
   line-height: 1.3;
+
+  ${({ $expandido }) =>
+    !$expandido &&
+    `
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  `}
+`;
+
+const VerMaisTexto = styled.span`
+  font-size: 10px;
+  color: #5C1D24;
+  font-weight: 600;
+  margin-bottom: 12px;
+  cursor: pointer;
+  display: inline-block;
+
+  &:hover {
+    text-decoration: underline;
+  }
 `;
 
 const CardFooter = styled.div`
@@ -70,9 +95,30 @@ const CardPreco = styled.span`
   font-size: 14px;
 `;
 
+const BotaoAdicionarCircular = styled.div`
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  background-color: #5C1D24;
+  color: #ffffff;
+  border-radius: 50%;
+  cursor: pointer;
+  transition: transform 0.1s ease, opacity 0.1s ease;
+
+  &:hover {
+    opacity: 0.9;
+    transform: scale(1.05);
+  }
+`;
+
 function CardProduto({ produto, onAdicionar }) {
+  // Estado para controlar se a descrição está expandida
+  const [expandido, setExpandido] = useState(false);
+
   return (
-    <CardProdutoContainer>
+    <CardProdutoContainer onClick={() => onAdicionar(produto)}>
       <ImagemContainer>
         {produto.imagem ? (
           <img src={produto.imagem} alt={produto.nome} />
@@ -84,19 +130,35 @@ function CardProduto({ produto, onAdicionar }) {
       <CardInfo>
         <div>
           <CardTitulo>{produto.nome}</CardTitulo>
-          <CardDescricao>{produto.descricao}</CardDescricao>
+          
+          {/* Passamos a prop $expandido para o Styled Component */}
+          <CardDescricao $expandido={expandido}>
+            {produto.descricao}
+          </CardDescricao>
+
+          {/* Botão de feedback opcional para alternar o texto */}
+          <VerMaisTexto 
+            onClick={(e) => {
+              e.stopPropagation();
+              setExpandido(!expandido);
+            }}
+          >
+            {expandido ? 'Ver menos' : 'Ver mais'}
+          </VerMaisTexto>
         </div>
 
         <CardFooter>
           <CardPreco>R$ {produto.preco}</CardPreco>
-          <Button 
-            icone={<FaPlus size={12} />}
-            altura="32px"
-            largura="32px"
-            cor="#5C1D24"
-            corTexto="#ffffff"
-            onClick={() => onAdicionar(produto)}
-          />
+          
+          <BotaoAdicionarCircular
+            onClick={(e) => {
+              e?.stopPropagation?.();
+              onAdicionar(produto);
+            }}
+            aria-label={`Adicionar ${produto.nome}`}
+          >
+            <FaPlus size={12} />
+          </BotaoAdicionarCircular>
         </CardFooter>
       </CardInfo>
     </CardProdutoContainer>
