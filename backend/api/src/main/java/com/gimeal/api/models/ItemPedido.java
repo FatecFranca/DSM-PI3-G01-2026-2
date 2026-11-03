@@ -1,15 +1,20 @@
 package com.gimeal.api.models;
 
-import org.springframework.data.mongodb.core.mapping.Field;
-import org.springframework.data.mongodb.core.mapping.FieldType;
+import java.util.ArrayList;
+import java.util.List;
 
 public class ItemPedido {
     
-    @Field(targetType = FieldType.OBJECT_ID)
     private String produtoId;
 
     private Integer quantidade;
     private Double precoUnitario;
+
+    private String nomeProduto;
+    private String tamanho;
+    private List<String> ingredientesRemovidos = new ArrayList<>();
+    private List<AdicionalPedido> adicionais = new ArrayList<>();
+    private ComboPedido combo;
 
     public ItemPedido(){
 
@@ -18,10 +23,20 @@ public class ItemPedido {
     public ItemPedido(
         String produtoId,
         Integer quantidade,
-        Double precoUnitario){
+        Double precoUnitario,
+        String nomeProduto,
+        String tamanho,
+        List<String> ingredientesRemovidos,
+        List<AdicionalPedido> adicionais,
+        ComboPedido combo){
             this.produtoId = produtoId;
             this.quantidade = quantidade;
             this.precoUnitario = precoUnitario;
+            this.nomeProduto = nomeProduto;
+            this.tamanho = tamanho;
+            this.ingredientesRemovidos = ingredientesRemovidos;
+            this.adicionais = adicionais;
+            this.combo = combo;
         }
 
     public String getProdutoId() {
@@ -48,6 +63,44 @@ public class ItemPedido {
         this.precoUnitario = precoUnitario;
     }
 
-    
+    public String getNomeProduto() {
+        return nomeProduto;
+    }
+
+    public void setNomeProduto(String nomeProduto) {
+        this.nomeProduto = nomeProduto;
+    }
+
+    public String getTamanho() {
+        return tamanho;
+    }
+
+    public void setTamanho(String tamanho) {
+        this.tamanho = tamanho;
+    }
+
+    public List<String> getIngredientesRemovidos() {
+        return ingredientesRemovidos;
+    }
+
+    public void setIngredientesRemovidos(List<String> ingredientesRemovidos) {
+        this.ingredientesRemovidos = ingredientesRemovidos;
+    }
+
+    public List<AdicionalPedido> getAdicionais() {
+        return adicionais;
+    }
+
+    public void setAdicionais(List<AdicionalPedido> adicionais) {
+        this.adicionais = adicionais;
+    }
+
+    public ComboPedido getCombo() {
+        return combo;
+    }
+
+    public void setCombo(ComboPedido combo) {
+        this.combo = combo;
+    }
 
 }

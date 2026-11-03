@@ -16,10 +16,12 @@ import org.springframework.web.bind.annotation.RestController;
 import com.gimeal.api.models.Pedido;
 import com.gimeal.api.services.PedidoService;
 
+import jakarta.validation.Valid;
+
 @RestController
 @RequestMapping("/pedido")
 public class PedidoController {
-    
+
     private final PedidoService service;
 
     public PedidoController(PedidoService service) {
@@ -39,7 +41,7 @@ public class PedidoController {
     }
 
     @PostMapping
-    public ResponseEntity<Pedido> criar(@RequestBody Pedido pedido) {
+    public ResponseEntity<Pedido> criar(@Valid @RequestBody Pedido pedido) {
         Pedido pedidoSalvo = service.salvar(pedido);
 
         return ResponseEntity
@@ -50,7 +52,7 @@ public class PedidoController {
     @PutMapping("/{id}")
     public ResponseEntity<Pedido> atualizar(
             @PathVariable String id,
-            @RequestBody Pedido pedido) {
+            @Valid @RequestBody Pedido pedido) {
 
         if (service.buscarPorId(id).isEmpty()) {
             return ResponseEntity.notFound().build();
@@ -65,14 +67,7 @@ public class PedidoController {
 
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> excluir(@PathVariable String id) {
-        
-        if (service.buscarPorId(id).isEmpty()) {
-            return ResponseEntity.notFound().build();
-        }
-
         service.excluir(id);
-
         return ResponseEntity.noContent().build();
     }
-
 }

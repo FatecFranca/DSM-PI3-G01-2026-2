@@ -16,10 +16,12 @@ import org.springframework.web.bind.annotation.RestController;
 import com.gimeal.api.models.Categoria;
 import com.gimeal.api.services.CategoriaService;
 
+import jakarta.validation.Valid;
+
 @RestController
 @RequestMapping("/categoria")
 public class CategoriaController {
-    
+
     private final CategoriaService service;
 
     public CategoriaController(CategoriaService service) {
@@ -39,18 +41,18 @@ public class CategoriaController {
     }
 
     @PostMapping
-    public ResponseEntity<Categoria> criar(@RequestBody Categoria categoria) {
-        Categoria categoriaSalvo = service.salvar(categoria);
+    public ResponseEntity<Categoria> criar(@Valid @RequestBody Categoria categoria) {
+        Categoria categoriaSalva = service.salvar(categoria);
 
         return ResponseEntity
                 .status(HttpStatus.CREATED)
-                .body(categoriaSalvo);
+                .body(categoriaSalva);
     }
 
     @PutMapping("/{id}")
     public ResponseEntity<Categoria> atualizar(
             @PathVariable String id,
-            @RequestBody Categoria categoria) {
+            @Valid @RequestBody Categoria categoria) {
 
         if (service.buscarPorId(id).isEmpty()) {
             return ResponseEntity.notFound().build();
@@ -58,21 +60,14 @@ public class CategoriaController {
 
         categoria.setId(id);
 
-        Categoria categoriaAtualizado = service.salvar(categoria);
+        Categoria categoriaAtualizada = service.salvar(categoria);
 
-        return ResponseEntity.ok(categoriaAtualizado);
+        return ResponseEntity.ok(categoriaAtualizada);
     }
 
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> excluir(@PathVariable String id) {
-        
-        if (service.buscarPorId(id).isEmpty()) {
-            return ResponseEntity.notFound().build();
-        }
-
         service.excluir(id);
-
         return ResponseEntity.noContent().build();
     }
-
 }

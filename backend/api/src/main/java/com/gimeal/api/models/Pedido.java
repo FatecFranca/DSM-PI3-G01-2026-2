@@ -7,42 +7,53 @@ import java.util.List;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+
 @Document(collection = "pedido")
 public class Pedido {
-    
-    @Id 
+
+    @Id
     private String id;
 
     private StatusPedidos status;
+
     private LocalDateTime dataHora;
+
     private Double valorTotal;
+
+    @NotBlank(message = "O nome do cliente é obrigatório.")
     private String nomeCliente;
+
+    @NotNull(message = "O tipo de consumo é obrigatório.")
     private TipoConsumo tipoConsumo;
+
+    @NotNull(message = "A forma de pagamento é obrigatória.")
     private FormaPagamento formaPagamento;
+
     private List<ItemPedido> itemPedido = new ArrayList<>();
 
-    public Pedido(){
-
+    public Pedido() {
     }
 
     public Pedido(
-        String id,
-        StatusPedidos status,
-        LocalDateTime dataHora,
-        Double valorTotal,
-        String nomeCliente,
-        TipoConsumo tipoConsumo,
-        FormaPagamento formaPagamento,
-        List<ItemPedido> itemPedido){
-            this.id = id;
-            this.status = status;
-            this.dataHora = dataHora;
-            this.valorTotal = valorTotal;
-            this.nomeCliente = nomeCliente;
-            this.tipoConsumo = tipoConsumo;
-            this.formaPagamento = formaPagamento;
-            this.itemPedido = itemPedido;
-        }
+            String id,
+            StatusPedidos status,
+            LocalDateTime dataHora,
+            Double valorTotal,
+            String nomeCliente,
+            TipoConsumo tipoConsumo,
+            FormaPagamento formaPagamento,
+            List<ItemPedido> itemPedido) {
+        this.id = id;
+        this.status = status;
+        this.dataHora = dataHora;
+        this.valorTotal = valorTotal;
+        this.nomeCliente = nomeCliente;
+        this.tipoConsumo = tipoConsumo;
+        this.formaPagamento = formaPagamento;
+        this.itemPedido = itemPedido;
+    }
 
     public String getId() {
         return id;
@@ -107,7 +118,4 @@ public class Pedido {
     public void setItemPedido(List<ItemPedido> itemPedido) {
         this.itemPedido = itemPedido;
     }
-
-    
-
 }

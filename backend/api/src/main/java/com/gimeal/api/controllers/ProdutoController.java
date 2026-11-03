@@ -13,13 +13,16 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.gimeal.api.dtos.ProdutoResponse;
 import com.gimeal.api.models.Produto;
 import com.gimeal.api.services.ProdutoService;
+
+import jakarta.validation.Valid;
 
 @RestController
 @RequestMapping("/produto")
 public class ProdutoController {
-    
+
     private final ProdutoService service;
 
     public ProdutoController(ProdutoService service) {
@@ -38,8 +41,20 @@ public class ProdutoController {
                 .orElse(ResponseEntity.notFound().build());
     }
 
+    @GetMapping("/cardapio")
+    public List<ProdutoResponse> listarCardapio() {
+        return service.listarCardapio();
+    }
+
+    @GetMapping("/cardapio/{id}")
+    public ResponseEntity<ProdutoResponse> buscarDetalhe(@PathVariable String id) {
+        return service.buscarDetalhe(id)
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.notFound().build());
+    }
+
     @PostMapping
-    public ResponseEntity<Produto> criar(@RequestBody Produto produto) {
+    public ResponseEntity<Produto> criar(@Valid @RequestBody Produto produto) {
         Produto produtoSalvo = service.salvar(produto);
 
         return ResponseEntity
@@ -50,7 +65,7 @@ public class ProdutoController {
     @PutMapping("/{id}")
     public ResponseEntity<Produto> atualizar(
             @PathVariable String id,
-            @RequestBody Produto produto) {
+            @Valid @RequestBody Produto produto) {
 
         if (service.buscarPorId(id).isEmpty()) {
             return ResponseEntity.notFound().build();
@@ -65,14 +80,7 @@ public class ProdutoController {
 
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> excluir(@PathVariable String id) {
-        
-        if (service.buscarPorId(id).isEmpty()) {
-            return ResponseEntity.notFound().build();
-        }
-
         service.excluir(id);
-
         return ResponseEntity.noContent().build();
     }
-
 }

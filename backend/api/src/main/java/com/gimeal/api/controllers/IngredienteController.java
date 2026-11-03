@@ -16,10 +16,12 @@ import org.springframework.web.bind.annotation.RestController;
 import com.gimeal.api.models.Ingrediente;
 import com.gimeal.api.services.IngredienteService;
 
+import jakarta.validation.Valid;
+
 @RestController
 @RequestMapping("/ingrediente")
 public class IngredienteController {
-    
+
     private final IngredienteService service;
 
     public IngredienteController(IngredienteService service) {
@@ -39,7 +41,7 @@ public class IngredienteController {
     }
 
     @PostMapping
-    public ResponseEntity<Ingrediente> criar(@RequestBody Ingrediente ingrediente) {
+    public ResponseEntity<Ingrediente> criar(@Valid @RequestBody Ingrediente ingrediente) {
         Ingrediente ingredienteSalvo = service.salvar(ingrediente);
 
         return ResponseEntity
@@ -50,7 +52,7 @@ public class IngredienteController {
     @PutMapping("/{id}")
     public ResponseEntity<Ingrediente> atualizar(
             @PathVariable String id,
-            @RequestBody Ingrediente ingrediente) {
+            @Valid @RequestBody Ingrediente ingrediente) {
 
         if (service.buscarPorId(id).isEmpty()) {
             return ResponseEntity.notFound().build();
@@ -65,14 +67,7 @@ public class IngredienteController {
 
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> excluir(@PathVariable String id) {
-        
-        if (service.buscarPorId(id).isEmpty()) {
-            return ResponseEntity.notFound().build();
-        }
-
         service.excluir(id);
-
         return ResponseEntity.noContent().build();
     }
-
 }

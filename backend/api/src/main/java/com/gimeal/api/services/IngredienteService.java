@@ -3,14 +3,16 @@ package com.gimeal.api.services;
 import java.util.List;
 import java.util.Optional;
 
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
 
 import com.gimeal.api.models.Ingrediente;
 import com.gimeal.api.repositories.IngredienteRepository;
 
 @Service
 public class IngredienteService {
-    
+
     private final IngredienteRepository repository;
 
     public IngredienteService(IngredienteRepository repository) {
@@ -30,7 +32,11 @@ public class IngredienteService {
     }
 
     public void excluir(String id) {
+        if (!repository.existsById(id)) {
+            throw new ResponseStatusException(
+                    HttpStatus.NOT_FOUND,
+                    "Ingrediente não encontrado.");
+        }
         repository.deleteById(id);
     }
-
-} 
+}

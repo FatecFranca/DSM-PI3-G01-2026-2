@@ -1,30 +1,31 @@
 package com.gimeal.api.models;
 
-public class AdicionalItem {
+public class AdicionalPedido {
 
-    private String id;
+    private String ingredienteId;
+
     private String nome;
     private Double preco;
 
-    public AdicionalItem(){
+    public AdicionalPedido(){
 
     }
 
-    public AdicionalItem(
-        String id,
+    public AdicionalPedido(
+        String ingredienteId,
         String nome,
         Double preco) {
-            this.id = id;
+            this.ingredienteId = ingredienteId;
             this.nome = nome;
             this.preco = preco;
         }
 
-    public String getId() {
-        return id;
+    public String getIngredienteId() {
+        return ingredienteId;
     }
 
-    public void setId(String id) {
-        this.id = id;
+    public void setIngredienteId(String ingredienteId) {
+        this.ingredienteId = ingredienteId;
     }
 
     public String getNome() {

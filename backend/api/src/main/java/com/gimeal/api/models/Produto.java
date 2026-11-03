@@ -5,59 +5,59 @@ import java.util.List;
 
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
-import org.springframework.data.mongodb.core.mapping.Field;
-import org.springframework.data.mongodb.core.mapping.FieldType;
+
+import jakarta.validation.constraints.NotBlank;
 
 @Document(collection = "produto")
 public class Produto {
 
-    @Id 
+    @Id
     private String id;
-    
+
+    @NotBlank(message = "O nome do produto é obrigatório.")
     private String nome;
+
     private Double precoBase;
+
     private String descricao;
+
     private List<Tamanhos> tamanhos = new ArrayList<>();
+
     private String codigoImagem;
-    
-    @Field(targetType = FieldType.OBJECT_ID)
+
     private String categoriaId;
 
-    @Field(targetType = FieldType.OBJECT_ID)
-    private String ingredienteBaseId;
+    private List<String> ingredientesBaseIds = new ArrayList<>();
 
-    @Field(targetType = FieldType.OBJECT_ID)
-    private String ingredientesAdicionaisId;
+    private List<String> ingredientesAdicionaisIds = new ArrayList<>();
 
-    @Field(targetType = FieldType.OBJECT_ID)
-    private String produtoCombo;
+    private List<OpcaoCombo> opcoesCombo = new ArrayList<>();
 
-    public Produto(){
-
+    public Produto() {
     }
 
     public Produto(
-        String id,
-        String nome,
-        Double precoBase,
-        String descricao,
-        List<Tamanhos> tamanhos,
-        String codigoImagem,
-        String categoriaId,
-        String ingredienteBaseId,
-        String ingredientesAdicionaisId,
-        String produtoCombo){
-            this.id = id;
-            this.nome = nome;
-            this.precoBase = precoBase;
-            this.descricao = descricao;
-            this.tamanhos = tamanhos;
-            this.codigoImagem = codigoImagem;
-            this.categoriaId = categoriaId;
-            this.ingredienteBaseId = ingredienteBaseId;
-            this.ingredientesAdicionaisId = ingredientesAdicionaisId;
-            this.produtoCombo = produtoCombo;
-        }
+            String id,
+            String nome,
+            Double precoBase,
+            String descricao,
+            List<Tamanhos> tamanhos,
+            String codigoImagem,
+            String categoriaId,
+            List<String> ingredientesBaseIds,
+            List<String> ingredientesAdicionaisIds,
+            List<OpcaoCombo> opcoesCombo) {
+        this.id = id;
+        this.nome = nome;
+        this.precoBase = precoBase;
+        this.descricao = descricao;
+        this.tamanhos = tamanhos;
+        this.codigoImagem = codigoImagem;
+        this.categoriaId = categoriaId;
+        this.ingredientesBaseIds = ingredientesBaseIds;
+        this.ingredientesAdicionaisIds = ingredientesAdicionaisIds;
+        this.opcoesCombo = opcoesCombo;
+    }
 
     public String getId() {
         return id;
@@ -115,29 +115,27 @@ public class Produto {
         this.categoriaId = categoriaId;
     }
 
-    public String getIngredienteBaseId() {
-        return ingredienteBaseId;
+    public List<String> getIngredientesBaseIds() {
+        return ingredientesBaseIds;
     }
 
-    public void setIngredienteBaseId(String ingredienteBaseId) {
-        this.ingredienteBaseId = ingredienteBaseId;
+    public void setIngredientesBaseIds(List<String> ingredientesBaseIds) {
+        this.ingredientesBaseIds = ingredientesBaseIds;
     }
 
-    public String getIngredientesAdicionaisId() {
-        return ingredientesAdicionaisId;
+    public List<String> getIngredientesAdicionaisIds() {
+        return ingredientesAdicionaisIds;
     }
 
-    public void setIngredientesAdicionaisId(String ingredientesAdicionaisId) {
-        this.ingredientesAdicionaisId = ingredientesAdicionaisId;
+    public void setIngredientesAdicionaisIds(List<String> ingredientesAdicionaisIds) {
+        this.ingredientesAdicionaisIds = ingredientesAdicionaisIds;
     }
 
-    public String getProdutoCombo() {
-        return produtoCombo;
+    public List<OpcaoCombo> getOpcoesCombo() {
+        return opcoesCombo;
     }
 
-    public void setProdutoCombo(String produtoCombo) {
-        this.produtoCombo = produtoCombo;
+    public void setOpcoesCombo(List<OpcaoCombo> opcoesCombo) {
+        this.opcoesCombo = opcoesCombo;
     }
-
-        
 }

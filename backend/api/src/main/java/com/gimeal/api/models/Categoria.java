@@ -3,27 +3,27 @@ package com.gimeal.api.models;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
-@Document (collection = "categoria")
+import jakarta.validation.constraints.NotBlank;
+
+@Document(collection = "categoria")
 public class Categoria {
 
-    @Id 
+    @Id
     private String id;
 
+    @NotBlank(message = "O nome da categoria é obrigatório.")
     private String nome;
+
     private String icone;
 
-    public Categoria(){
-
+    public Categoria() {
     }
 
-    public Categoria(
-        String id,
-        String nome,
-        String icone) {
-            this.id = id;
-            this.nome = nome;
-            this.icone = icone;
-        }
+    public Categoria(String id, String nome, String icone) {
+        this.id = id;
+        this.nome = nome;
+        this.icone = icone;
+    }
 
     public String getId() {
         return id;
@@ -48,7 +48,4 @@ public class Categoria {
     public void setIcone(String icone) {
         this.icone = icone;
     }
-
-        
-    
 }
