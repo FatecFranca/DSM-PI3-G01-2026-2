@@ -8,7 +8,7 @@ import SecaoCategoria from "./Components/SecaoCategoria";
 import ModalCategoria from "./Components/ModalCategoria";
 import ModalPrato from "./Components/ModalPrato";
 
-import { enviarImagem, atualzarImagem, exlcuirImagem } from "../../services/produtoApi";
+import { enviarImagem, exlcuirImagem, atualizarImagem } from "../../services/produtoApi";
 
 import "../../styles/MenuAdm.css";
 
@@ -50,7 +50,7 @@ function Menu() {
     const [nomePrato, setNomePrato] = useState('');
     const [descricaoPrato, setDescricaoPrato] = useState('');
     const [precoPrato, setPrecoPrato] = useState('');
-    const [imagemPrato, setImagemPrato] = useState(''); // #########################################################################################
+    const [imagemPrato, setImagemPrato] = useState(''); 
     const [arquivoImagem, setArquivoImagem] = useState(null);
 
     // Listas configuráveis do prato (o cliente vê isso ao escolher o produto)
@@ -79,7 +79,7 @@ function Menu() {
             // Esse if verifica se a imagem ja está salva ou se é uma nova imagem
             if (arquivoImagem) {
                 const salvo = codigoImagem
-                    ? await atualzarImagem(codigoImagem, arquivoImagem) // PUT para atualizar
+                    ? await atualizarImagem(codigoImagem, arquivoImagem) // PUT para atualizar
                     : await enviarImagem(arquivoImagem);                // ou POST para adicionar
                 codigoImagem = salvo.id
             }
@@ -144,7 +144,7 @@ function Menu() {
         setPratoEmEdicaoId(null);
     }
 
-    function handleUploadImagem(e) { // ###################################################################################################################################################
+    function handleUploadImagem(e) { 
         const file = e.target.files[0];
         if (file) {
             setArquivoImagem(file)
@@ -223,7 +223,7 @@ function Menu() {
                 setDescricaoPrato={setDescricaoPrato}
                 precoPrato={precoPrato}
                 setPrecoPrato={setPrecoPrato}
-                imagemPrato={imagemPrato}  // ##################################################################################################
+                imagemPrato={imagemPrato}  
                 onUploadImagem={handleUploadImagem}
                 ingredientes={ingredientesPrato}
                 setIngredientes={setIngredientesPrato}

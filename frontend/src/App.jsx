@@ -4,7 +4,7 @@ import Home from './pages/cliente/Home';               // pagina de abertura cli
 import Cardapio from './pages/cliente/Cardapio';      // mostra as opções de itens do carrdapio disponiveis para os clientes
 import Preferencias from './pages/adm/Preferencias'; // edita preferencias de aparencia do sistema
 import Menu from './pages/adm/Menu';                // página de menu que mostra as categorias q tem em adm
-
+import Cozinha from './pages/cozinha/Cozinha';
 
 function App() {
   return (
@@ -13,6 +13,7 @@ function App() {
       <Route path='/cardapio' element={<Cardapio/>}/>
       <Route path='/preferencias' element={<Preferencias/>}/>
       <Route path='/menu' element={<Menu/>}/>
+      <Route path='/cozinha' element={<Cozinha/>}/>  
     </Routes>
   );
 }

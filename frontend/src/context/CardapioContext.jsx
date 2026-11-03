@@ -33,6 +33,11 @@ export function CardapioProvider({ children }) {
   // Estado que armazena a url das imagens
   const [urlsImagens, setUrlsImagens] = useState({});
 
+  // Estado que armazena os pedidos feitos pelos clientes (painel da cozinha)
+  const [pedidos, setPedidos] = useState(() =>
+    carregarDados("pedidos", [])
+  );
+
   // Sincroniza as categorias com o LocalStorage sempre que houver alteração
   useEffect(() => {
     localStorage.setItem("categorias", JSON.stringify(categorias));
@@ -42,6 +47,26 @@ export function CardapioProvider({ children }) {
   useEffect(() => {
     localStorage.setItem("produtos", JSON.stringify(produtos));
   }, [produtos]);
+
+  // Sincroniza os pedidos com o LocalStorage sempre que houver alteração
+  useEffect(() => {
+    localStorage.setItem("pedidos", JSON.stringify(pedidos));
+  }, [pedidos]);
+
+  // Quando OUTRA aba do mesmo navegador altera os pedidos (ex.: o cliente
+  // finaliza um pedido enquanto a cozinha está aberta em outra aba), atualiza aqui.
+  useEffect(() => {
+    function aoMudarStorage(evento) {
+      if (evento.key !== "pedidos") return;
+      try {
+        setPedidos(evento.newValue ? JSON.parse(evento.newValue) : []);
+      } catch {
+        // ignora valor inválido
+      }
+    }
+    window.addEventListener("storage", aoMudarStorage);
+    return () => window.removeEventListener("storage", aoMudarStorage);
+  }, []);
 
   // Função para adicionar uma nova categoria
   function adicionarCategoria(texto, icone) {
@@ -104,7 +129,7 @@ export function CardapioProvider({ children }) {
     setUrlsImagens(mapa);
   }
 
-  // Vai rodar uma vez quand o app abre
+  // Vai rodar uma vez quando o app abre
 
   useEffect(() => {
     recarregarImagens();
@@ -114,7 +139,42 @@ export function CardapioProvider({ children }) {
     ...p,
     imagem: urlsImagens[p.codigoImagem] || '',
   }));
- 
+
+  // Cria um pedido para a cozinha e devolve o pedido criado (com a senha).
+  // A senha é um número sequencial que recomeça a cada dia (1, 2, 3...),
+  // assim dois clientes nunca ficam com a mesma senha no mesmo dia.
+  function adicionarPedido(dadosPedido) {
+    const hoje = new Date().toDateString();
+    const pedidosDeHoje = pedidos.filter(
+      (p) => new Date(p.criadoEm).toDateString() === hoje
+    );
+    const maiorSenha = pedidosDeHoje.reduce((maior, p) => Math.max(maior, p.senha), 0);
+
+    const novoPedido = {
+      id: crypto.randomUUID(),
+      senha: maiorSenha + 1,
+      status: "fila", // fila -> preparando -> pronto -> entregue
+      tempoPreparoMin: 15,
+      criadoEm: Date.now(),
+      iniciadoEm: null,
+      prontoEm: null,
+      entregueEm: null,
+      ...dadosPedido,
+    };
+
+    setPedidos((lista) => [...lista, novoPedido]);
+    return novoPedido;
+  }
+
+  // Atualiza campos de um pedido (status, tempo de preparo, horários...)
+  function atualizarPedido(id, dadosAtualizados) {
+    setPedidos((lista) =>
+      lista.map((pedido) =>
+        pedido.id === id ? { ...pedido, ...dadosAtualizados } : pedido
+      )
+    );
+  }
+
   return (
     <CardapioContext.Provider
       value={{
@@ -127,6 +187,9 @@ export function CardapioProvider({ children }) {
         adicionarProduto,
         editarProduto, // <--- EXPOSTO AQUI
         excluirProduto,
+        pedidos,
+        adicionarPedido,
+        atualizarPedido,
       }}
     >
       {children}

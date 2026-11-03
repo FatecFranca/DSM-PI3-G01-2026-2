@@ -26,7 +26,7 @@ export async function enviarImagem(arquivo) {
     return resposta.json();
 }
 
-export async function atualzarImagem(id, arquivo) {
+export async function atualizarImagem(id, arquivo) {
     const resposta = await fetch(`${API}/${id}`, {
         method: 'PUT',
         body: montarFormData(arquivo)
