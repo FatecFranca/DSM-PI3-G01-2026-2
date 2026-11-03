@@ -5,6 +5,8 @@ import {
   useState,
 } from "react";
 
+import { listarTodos } from "../services/produtoApi";
+
 const CardapioContext = createContext(null);
 
 // Função auxiliar para carregar dados salvos no navegador (LocalStorage)
@@ -27,6 +29,9 @@ export function CardapioProvider({ children }) {
   const [produtos, setProdutos] = useState(() => 
     carregarDados("produtos", [])
   );
+
+  // Estado que armazena a url das imagens
+  const [urlsImagens, setUrlsImagens] = useState({});
 
   // Sincroniza as categorias com o LocalStorage sempre que houver alteração
   useEffect(() => {
@@ -92,6 +97,24 @@ export function CardapioProvider({ children }) {
     setProdutos((lista) => lista.filter((produto) => String(produto.id) !== String(id)));
   }
 
+  async function recarregarImagens() {
+    const lista = await listarTodos();
+    const mapa = {};
+    lista.forEach((img) => { mapa[img.id] = img.urlTemporariaImagem; });
+    setUrlsImagens(mapa);
+  }
+
+  // Vai rodar uma vez quand o app abre
+
+  useEffect(() => {
+    recarregarImagens();
+  }, []);
+
+  const produtosComImagem = produtos.map((p) => ({
+    ...p,
+    imagem: urlsImagens[p.codigoImagem] || '',
+  }));
+ 
   return (
     <CardapioContext.Provider
       value={{
@@ -99,7 +122,8 @@ export function CardapioProvider({ children }) {
         adicionarCategoria,
         editarCategoria,
         excluirCategoria,
-        produtos,
+        produtos: produtosComImagem,
+        recarregarImagens,
         adicionarProduto,
         editarProduto, // <--- EXPOSTO AQUI
         excluirProduto,
