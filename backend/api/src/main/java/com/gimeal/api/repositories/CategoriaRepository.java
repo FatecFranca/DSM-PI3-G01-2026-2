@@ -4,6 +4,8 @@ import org.springframework.data.mongodb.repository.MongoRepository;
 
 import com.gimeal.api.models.Categoria;
 
-public interface CategoriaRepository 
-    extends MongoRepository <Categoria, String> {
+public interface CategoriaRepository
+        extends MongoRepository<Categoria, String> {
+
+    boolean existsByNomeIgnoreCase(String nome);
 }

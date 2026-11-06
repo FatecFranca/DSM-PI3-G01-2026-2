@@ -14,6 +14,7 @@ public class Categoria {
     @NotBlank(message = "O nome da categoria é obrigatório.")
     private String nome;
 
+    @NotBlank(message = "O ícone da categoria é obrigatório.")
     private String icone;
 
     public Categoria() {

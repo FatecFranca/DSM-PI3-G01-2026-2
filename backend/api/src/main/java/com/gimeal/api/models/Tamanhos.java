@@ -1,10 +1,18 @@
 package com.gimeal.api.models;
 
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.PositiveOrZero;
+
 public class Tamanhos {
 
     private String id;
+
+    @NotBlank(message = "O nome do tamanho é obrigatório.")
     private String nome;
+
+    @PositiveOrZero(message = "O preço do tamanho não pode ser negativo.")
     private Double preco;
+
     private Boolean ativo;
 
     public Tamanhos(){

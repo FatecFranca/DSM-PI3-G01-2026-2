@@ -3,27 +3,28 @@ package com.gimeal.api.models;
 import java.util.ArrayList;
 import java.util.List;
 
+import jakarta.validation.constraints.NotBlank;
+
 public class OpcaoCombo {
 
     private String id;
+
+    @NotBlank(message = "O nome da opção de combo é obrigatório.")
     private String nome;
+
     private Double preco;
+
     private List<String> produtosIds = new ArrayList<>();
 
-    public OpcaoCombo(){
-
+    public OpcaoCombo() {
     }
 
-    public OpcaoCombo(
-        String id,
-        String nome,
-        Double preco,
-        List<String> produtosIds) {
-            this.id = id;
-            this.nome = nome;
-            this.preco = preco;
-            this.produtosIds = produtosIds;
-        }
+    public OpcaoCombo(String id, String nome, Double preco, List<String> produtosIds) {
+        this.id = id;
+        this.nome = nome;
+        this.preco = preco;
+        this.produtosIds = produtosIds;
+    }
 
     public String getId() {
         return id;
@@ -56,5 +57,4 @@ public class OpcaoCombo {
     public void setProdutosIds(List<String> produtosIds) {
         this.produtosIds = produtosIds;
     }
-
 }

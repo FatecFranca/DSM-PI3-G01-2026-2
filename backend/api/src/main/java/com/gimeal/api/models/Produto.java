@@ -7,8 +7,10 @@ import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.PositiveOrZero;
 
-@Document(collection = "produto")
+@Document(collection = "produtos")
 public class Produto {
 
     @Id
@@ -17,6 +19,8 @@ public class Produto {
     @NotBlank(message = "O nome do produto é obrigatório.")
     private String nome;
 
+    @NotNull(message = "O preço base é obrigatório.")
+    @PositiveOrZero(message = "O preço base não pode ser negativo.")
     private Double precoBase;
 
     private String descricao;
@@ -25,6 +29,7 @@ public class Produto {
 
     private String codigoImagem;
 
+    @NotBlank(message = "A categoria é obrigatória.")
     private String categoriaId;
 
     private List<String> ingredientesBaseIds = new ArrayList<>();

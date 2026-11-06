@@ -1,0 +1,215 @@
+/* =========================
+   LOGIN ADMINISTRADOR
+========================= */
+
+.login-overlay {
+    position: fixed;
+    inset: 0;
+    background-color: rgba(0, 0, 0, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    z-index: 2000;
+    backdrop-filter: blur(4px);
+}
+
+.login-card {
+    background-color: #FFF;
+    width: 100%;
+    max-width: 400px;
+    border-radius: 24px;
+    padding: 36px 30px 28px;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.12);
+    box-sizing: border-box;
+    animation: loginFadeIn 0.25s ease-out;
+}
+
+@keyframes loginFadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(12px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* =========================
+   CABEÇALHO DO LOGIN
+========================= */
+
+.login-header {
+    text-align: center;
+    margin-bottom: 28px;
+}
+
+.login-icone {
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    background-color: #F8EAE5;
+    color: #5C1D24;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 16px;
+}
+
+.login-titulo {
+    color: #5C1D24;
+    font-size: 22px;
+    font-weight: bold;
+    margin: 0 0 4px;
+}
+
+.login-subtitulo {
+    color: #777;
+    font-size: 13px;
+    margin: 0;
+}
+
+/* =========================
+   CAMPOS DO FORMULÁRIO
+========================= */
+
+.login-form {
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+}
+
+.login-campo label {
+    display: block;
+    font-size: 13px;
+    font-weight: 500;
+    color: #4A2E18;
+    margin-bottom: 6px;
+}
+
+.login-input-wrapper {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.login-input-icone {
+    position: absolute;
+    left: 14px;
+    color: #A37B58;
+    pointer-events: none;
+}
+
+.login-input-wrapper input {
+    width: 100%;
+    padding: 12px 16px 12px 42px;
+    border-radius: 12px;
+    border: 1px solid #A37B58;
+    font-size: 14px;
+    outline: none;
+    background-color: #FAFAFA;
+    box-sizing: border-box;
+    font-family: inherit;
+    transition: border-color 0.2s;
+}
+
+.login-input-wrapper input:focus {
+    border-color: #5C1D24;
+    background-color: #FFF;
+}
+
+.login-input-wrapper input::placeholder {
+    color: #AAA;
+}
+
+/* =========================
+   TOGGLE MOSTRAR SENHA
+========================= */
+
+.login-toggle-senha {
+    position: absolute;
+    right: 12px;
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: #A37B58;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 4px;
+    border-radius: 6px;
+    transition: color 0.2s;
+}
+
+.login-toggle-senha:hover {
+    color: #5C1D24;
+}
+
+/* =========================
+   MENSAGEM DE ERRO
+========================= */
+
+.login-erro {
+    color: #C62828;
+    font-size: 13px;
+    margin: -6px 0 2px;
+    text-align: center;
+    background-color: #FFF0F0;
+    padding: 8px 12px;
+    border-radius: 8px;
+    border: 1px solid #FFCDD2;
+}
+
+/* =========================
+   BOTÃO ENTRAR
+========================= */
+
+.login-btn {
+    margin-top: 6px;
+    margin-bottom: 0;
+    font-size: 15px;
+    transition: background-color 0.2s, opacity 0.2s;
+}
+
+.login-btn:disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
+}
+
+/* =========================
+   RODAPÉ
+========================= */
+
+.login-footer {
+    text-align: center;
+    color: #AAA;
+    font-size: 11px;
+    margin-top: 20px;
+    letter-spacing: 0.3px;
+}
+
+/* =========================
+   RESPONSIVIDADE
+========================= */
+
+@media (max-width: 480px) {
+    .login-card {
+        padding: 28px 22px 22px;
+        border-radius: 20px;
+    }
+
+    .login-titulo {
+        font-size: 20px;
+    }
+
+    .login-icone {
+        width: 48px;
+        height: 48px;
+    }
+
+    .login-icone svg {
+        width: 24px;
+        height: 24px;
+    }
+}

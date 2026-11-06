@@ -4,6 +4,7 @@ import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.PositiveOrZero;
 
 @Document(collection = "ingrediente")
 public class Ingrediente {
@@ -14,6 +15,7 @@ public class Ingrediente {
     @NotBlank(message = "O nome do ingrediente é obrigatório.")
     private String nome;
 
+    @PositiveOrZero(message = "O preço do ingrediente não pode ser negativo.")
     private Double preco;
 
     private Integer quantidade;

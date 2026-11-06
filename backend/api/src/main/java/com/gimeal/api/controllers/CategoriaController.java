@@ -13,13 +13,14 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.gimeal.api.dtos.CategoriaRequest;
 import com.gimeal.api.models.Categoria;
 import com.gimeal.api.services.CategoriaService;
 
 import jakarta.validation.Valid;
 
 @RestController
-@RequestMapping("/categoria")
+@RequestMapping("/categorias")
 public class CategoriaController {
 
     private final CategoriaService service;
@@ -41,8 +42,8 @@ public class CategoriaController {
     }
 
     @PostMapping
-    public ResponseEntity<Categoria> criar(@Valid @RequestBody Categoria categoria) {
-        Categoria categoriaSalva = service.salvar(categoria);
+    public ResponseEntity<Categoria> criar(@Valid @RequestBody CategoriaRequest request) {
+        Categoria categoriaSalva = service.salvar(request);
 
         return ResponseEntity
                 .status(HttpStatus.CREATED)
@@ -52,17 +53,9 @@ public class CategoriaController {
     @PutMapping("/{id}")
     public ResponseEntity<Categoria> atualizar(
             @PathVariable String id,
-            @Valid @RequestBody Categoria categoria) {
+            @Valid @RequestBody CategoriaRequest request) {
 
-        if (service.buscarPorId(id).isEmpty()) {
-            return ResponseEntity.notFound().build();
-        }
-
-        categoria.setId(id);
-
-        Categoria categoriaAtualizada = service.salvar(categoria);
-
-        return ResponseEntity.ok(categoriaAtualizada);
+        return ResponseEntity.ok(service.atualizar(id, request));
     }
 
     @DeleteMapping("/{id}")

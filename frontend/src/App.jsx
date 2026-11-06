@@ -5,6 +5,7 @@ import Cardapio from './pages/cliente/Cardapio';      // mostra as opções de i
 import Preferencias from './pages/adm/Preferencias'; // edita preferencias de aparencia do sistema
 import Menu from './pages/adm/Menu';                // página de menu que mostra as categorias q tem em adm
 import Cozinha from './pages/cozinha/Cozinha';
+import LoginAdm from './pages/adm/LoginAdm';
 
 function App() {
   return (
@@ -14,6 +15,7 @@ function App() {
       <Route path='/preferencias' element={<Preferencias/>}/>
       <Route path='/menu' element={<Menu/>}/>
       <Route path='/cozinha' element={<Cozinha/>}/>  
+      <Route path='/login' element={<LoginAdm/>}/>
     </Routes>
   );
 }

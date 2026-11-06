@@ -9,6 +9,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
+import com.gimeal.api.dtos.IngredienteRequest;
+import com.gimeal.api.dtos.ProdutoRequest;
 import com.gimeal.api.dtos.ProdutoResponse;
 import com.gimeal.api.dtos.ProdutoResponse.AdicionalResumo;
 import com.gimeal.api.dtos.ProdutoResponse.CategoriaResumo;
@@ -26,24 +28,56 @@ import com.gimeal.api.repositories.ProdutoRepository;
 public class ProdutoService {
 
     private final ProdutoRepository repository;
-    private final IngredienteRepository ingredienteRepository;
     private final CategoriaRepository categoriaRepository;
+    private final IngredienteRepository ingredienteRepository;
 
     public ProdutoService(
             ProdutoRepository repository,
-            IngredienteRepository ingredienteRepository,
-            CategoriaRepository categoriaRepository) {
+            CategoriaRepository categoriaRepository,
+            IngredienteRepository ingredienteRepository) {
         this.repository = repository;
-        this.ingredienteRepository = ingredienteRepository;
         this.categoriaRepository = categoriaRepository;
+        this.ingredienteRepository = ingredienteRepository;
     }
 
-    public List<Produto> listarTodos() {
-        return repository.findAll();
+    public List<ProdutoResponse> listarTodos() {
+        return repository.findAll().stream()
+                .map(this::montarResposta)
+                .toList();
     }
 
-    public Optional<Produto> buscarPorId(String id) {
-        return repository.findById(id);
+    public Optional<ProdutoResponse> buscarPorId(String id) {
+        return repository.findById(id)
+                .map(this::montarResposta);
+    }
+
+    public List<ProdutoResponse> listarPorCategoria(String categoriaId) {
+        verificarCategoria(categoriaId);
+
+        return repository.findByCategoriaId(categoriaId).stream()
+                .map(this::montarResposta)
+                .toList();
+    }
+
+    public Produto salvar(ProdutoRequest request) {
+        verificarCategoria(request.categoriaId());
+
+        Produto produto = new Produto();
+        aplicarDados(produto, request);
+
+        return repository.save(produto);
+    }
+
+    public Produto atualizar(String id, ProdutoRequest request) {
+        Produto produto = repository.findById(id)
+                .orElseThrow(() -> new ResponseStatusException(
+                        HttpStatus.NOT_FOUND,
+                        "Produto não encontrado."));
+
+        verificarCategoria(request.categoriaId());
+        aplicarDados(produto, request);
+
+        return repository.save(produto);
     }
 
     public void excluir(String id) {
@@ -52,135 +86,159 @@ public class ProdutoService {
                     HttpStatus.NOT_FOUND,
                     "Produto não encontrado.");
         }
+
         repository.deleteById(id);
     }
 
-    public Produto salvar(Produto produto) {
-        garantirListas(produto);
-        validarReferencias(produto);
-        gerarIdsInternos(produto);
-        return repository.save(produto);
+    private void aplicarDados(Produto produto, ProdutoRequest request) {
+        produto.setNome(request.nome());
+        produto.setPrecoBase(request.precoBase());
+        produto.setDescricao(request.descricao());
+        produto.setCategoriaId(request.categoriaId());
+        produto.setCodigoImagem(request.codigoImagem());
+
+        produto.setTamanhos(tratarTamanhos(request.tamanhos()));
+        produto.setIngredientesBaseIds(tratarIngredientesBase(request.ingredientes()));
+        produto.setIngredientesAdicionaisIds(tratarAdicionais(request.adicionais()));
+        produto.setOpcoesCombo(tratarCombos(request.opcoesCombo()));
     }
 
-    private void garantirListas(Produto produto) {
-        if (produto.getTamanhos() == null) {
-            produto.setTamanhos(new ArrayList<>());
-        }
-        if (produto.getIngredientesBaseIds() == null) {
-            produto.setIngredientesBaseIds(new ArrayList<>());
-        }
-        if (produto.getIngredientesAdicionaisIds() == null) {
-            produto.setIngredientesAdicionaisIds(new ArrayList<>());
-        }
-        if (produto.getOpcoesCombo() == null) {
-            produto.setOpcoesCombo(new ArrayList<>());
-        }
-    }
-
-    private void validarReferencias(Produto produto) {
-        if (produto.getCategoriaId() != null) {
-            Categoria categoria = categoriaRepository.findById(produto.getCategoriaId()).orElse(null);
-            if (categoria == null) {
-                throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
-                        "Categoria não encontrada: " + produto.getCategoriaId());
-            }
-            produto.setCategoriaId(categoria.getId());
+    private List<Tamanhos> tratarTamanhos(List<Tamanhos> tamanhos) {
+        if (tamanhos == null) {
+            return new ArrayList<>();
         }
 
-        List<String> idsBase = new ArrayList<>();
-        for (String idIngrediente : produto.getIngredientesBaseIds()) {
-            Ingrediente ingrediente = ingredienteRepository.findById(idIngrediente).orElse(null);
-            if (ingrediente == null) {
-                throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
-                        "Ingrediente não encontrado: " + idIngrediente);
-            }
-            idsBase.add(ingrediente.getId());
-        }
-        produto.setIngredientesBaseIds(idsBase);
-
-        List<String> idsAdicionais = new ArrayList<>();
-        for (String idIngrediente : produto.getIngredientesAdicionaisIds()) {
-            Ingrediente ingrediente = ingredienteRepository.findById(idIngrediente).orElse(null);
-            if (ingrediente == null) {
-                throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
-                        "Ingrediente não encontrado: " + idIngrediente);
-            }
-            if (ingrediente.getPreco() == null) {
-                throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
-                        "O ingrediente " + ingrediente.getNome() + " não tem preço e não pode ser adicional");
-            }
-            idsAdicionais.add(ingrediente.getId());
-        }
-        produto.setIngredientesAdicionaisIds(idsAdicionais);
-
-        for (OpcaoCombo opcao : produto.getOpcoesCombo()) {
-            List<String> idsProdutos = new ArrayList<>();
-            if (opcao.getProdutosIds() != null) {
-                for (String idProduto : opcao.getProdutosIds()) {
-                    Produto doCombo = repository.findById(idProduto).orElse(null);
-                    if (doCombo == null) {
-                        throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
-                                "Produto do combo não encontrado: " + idProduto);
-                    }
-                    idsProdutos.add(doCombo.getId());
-                }
-            }
-            opcao.setProdutosIds(idsProdutos);
-        }
-    }
-
-    private void gerarIdsInternos(Produto produto) {
-        for (Tamanhos tamanho : produto.getTamanhos()) {
+        for (Tamanhos tamanho : tamanhos) {
             if (tamanho.getId() == null || tamanho.getId().isBlank()) {
                 tamanho.setId(UUID.randomUUID().toString());
             }
         }
-        for (OpcaoCombo opcao : produto.getOpcoesCombo()) {
-            if (opcao.getId() == null || opcao.getId().isBlank()) {
-                opcao.setId(UUID.randomUUID().toString());
+
+        return tamanhos;
+    }
+
+    private List<String> tratarIngredientesBase(List<String> nomes) {
+        List<String> ids = new ArrayList<>();
+
+        if (nomes == null) {
+            return ids;
+        }
+
+        for (String nome : nomes) {
+            if (nome == null || nome.isBlank()) {
+                continue;
+            }
+
+            Ingrediente ingrediente = ingredienteRepository
+                    .findByNomeIgnoreCase(nome.trim())
+                    .orElseGet(() -> ingredienteRepository.save(
+                            new Ingrediente(null, nome.trim(), null, null)));
+
+            ids.add(ingrediente.getId());
+        }
+
+        return ids;
+    }
+
+    private List<String> tratarAdicionais(List<IngredienteRequest> adicionais) {
+        List<String> ids = new ArrayList<>();
+
+        if (adicionais == null) {
+            return ids;
+        }
+
+        for (IngredienteRequest adicional : adicionais) {
+            if (adicional.nome() == null || adicional.nome().isBlank()) {
+                continue;
+            }
+
+            if (adicional.preco() == null) {
+                throw new ResponseStatusException(
+                        HttpStatus.BAD_REQUEST,
+                        "O adicional " + adicional.nome() + " precisa ter preço.");
+            }
+
+            Ingrediente ingrediente = ingredienteRepository
+                    .findByNomeIgnoreCase(adicional.nome().trim())
+                    .orElseGet(() -> ingredienteRepository.save(
+                            new Ingrediente(null, adicional.nome().trim(), adicional.preco(), null)));
+
+            ingrediente.setPreco(adicional.preco());
+            ingredienteRepository.save(ingrediente);
+
+            ids.add(ingrediente.getId());
+        }
+
+        return ids;
+    }
+
+    private List<OpcaoCombo> tratarCombos(List<OpcaoCombo> combos) {
+        if (combos == null) {
+            return new ArrayList<>();
+        }
+
+        for (OpcaoCombo combo : combos) {
+            if (combo.getId() == null || combo.getId().isBlank()) {
+                combo.setId(UUID.randomUUID().toString());
+            }
+
+            if (combo.getProdutosIds() != null) {
+                for (String idProduto : combo.getProdutosIds()) {
+                    if (!repository.existsById(idProduto)) {
+                        throw new ResponseStatusException(
+                                HttpStatus.BAD_REQUEST,
+                                "Produto do combo não encontrado: " + idProduto);
+                    }
+                }
             }
         }
+
+        return combos;
     }
 
-    public List<ProdutoResponse> listarCardapio() {
-        List<ProdutoResponse> resposta = new ArrayList<>();
-        for (Produto produto : repository.findAll()) {
-            resposta.add(montarResposta(produto));
+    private void verificarCategoria(String categoriaId) {
+        if (categoriaId == null || categoriaId.isBlank()) {
+            throw new ResponseStatusException(
+                    HttpStatus.BAD_REQUEST,
+                    "O identificador da categoria é obrigatório.");
         }
-        return resposta;
-    }
 
-    public Optional<ProdutoResponse> buscarDetalhe(String id) {
-        Produto produto = repository.findById(id).orElse(null);
-        if (produto == null) {
-            return Optional.empty();
+        if (!categoriaRepository.existsById(categoriaId)) {
+            throw new ResponseStatusException(
+                    HttpStatus.NOT_FOUND,
+                    "Categoria não encontrada.");
         }
-        return Optional.of(montarResposta(produto));
     }
 
     private ProdutoResponse montarResposta(Produto produto) {
         CategoriaResumo categoria = null;
+
         if (produto.getCategoriaId() != null) {
-            Categoria c = categoriaRepository.findById(produto.getCategoriaId()).orElse(null);
-            if (c != null) {
-                categoria = new CategoriaResumo(c.getId(), c.getNome(), c.getIcone());
+            Categoria encontrada = categoriaRepository
+                    .findById(produto.getCategoriaId())
+                    .orElse(null);
+
+            if (encontrada != null) {
+                categoria = new CategoriaResumo(
+                        encontrada.getId(),
+                        encontrada.getNome(),
+                        encontrada.getIcone());
             }
         }
 
         List<IngredienteResumo> base = new ArrayList<>();
         for (String idIngrediente : produto.getIngredientesBaseIds()) {
-            Ingrediente ing = ingredienteRepository.findById(idIngrediente).orElse(null);
-            if (ing != null) {
-                base.add(new IngredienteResumo(ing.getId(), ing.getNome()));
-            }
+            ingredienteRepository.findById(idIngrediente).ifPresent(ingrediente -> base.add(
+                    new IngredienteResumo(ingrediente.getId(), ingrediente.getNome())));
         }
 
         List<AdicionalResumo> adicionais = new ArrayList<>();
         for (String idIngrediente : produto.getIngredientesAdicionaisIds()) {
-            Ingrediente ing = ingredienteRepository.findById(idIngrediente).orElse(null);
-            if (ing != null) {
-                adicionais.add(new AdicionalResumo(ing.getId(), ing.getNome(), ing.getPreco()));
-            }
+            ingredienteRepository.findById(idIngrediente).ifPresent(ingrediente -> adicionais.add(
+                    new AdicionalResumo(
+                            ingrediente.getId(),
+                            ingrediente.getNome(),
+                            ingrediente.getPreco())));
         }
 
         return new ProdutoResponse(
@@ -189,6 +247,7 @@ public class ProdutoService {
                 produto.getPrecoBase(),
                 produto.getDescricao(),
                 produto.getCodigoImagem(),
+                produto.getCategoriaId(),
                 categoria,
                 produto.getTamanhos(),
                 base,
