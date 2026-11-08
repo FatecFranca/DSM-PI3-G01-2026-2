@@ -1271,7 +1271,7 @@ export function TelaCarrinho({ itens, onEditarItem, onRemoverItem, onCancelarPed
 // ---------------------------------------------------------------
 function ConteudoCardapio() {
   const imagensCardapio = [cafe, croassant, donnuts];
-  const { categorias, produtos, pedidos = [], setPedidos, adicionarPedido } = useCardapio();
+  const { categorias, produtos, pedidos = [], adicionarPedido, atualizarPedido, meusIds } = useCardapio();
   const [categoriaAtiva, setCategoriaAtiva] = useState('todos');
   const [busca, setBusca] = useState('');
 
@@ -1281,14 +1281,6 @@ function ConteudoCardapio() {
   const [checkoutAberto, setCheckoutAberto] = useState(false);
   const [itemEmEdicao, setItemEmEdicao] = useState(null);
 
-  // Guarda quais IDs de pedidos pertencem a este aparelho/navegador
-  const [meusIds, setMeusIds] = useState(() => {
-    try {
-      return JSON.parse(localStorage.getItem('meusPedidosIds') || '[]');
-    } catch {
-      return [];
-    }
-  });
 
   const [acompanharAberto, setAcompanharAberto] = useState(false);
   const [idAcompanharAtivo, setIdAcompanharAtivo] = useState(null);
@@ -1338,18 +1330,6 @@ function ConteudoCardapio() {
   }
 
   function confirmarItem(itemPersonalizado) {
-    // const produtoOriginal = produtos.find((p) => p.id === itemPersonalizado.produtoId);
-
-    // const itemComImagem = {
-    //   ...itemPersonalizado,
-    //   imagem: produtoOriginal?.imagem || '',
-    // };
-
-    // setCarrinho((atual) =>
-    //   atual.some((i) => i.idItem === itemComImagem.idItem)
-    //     ? atual.map((i) => (i.idItem === itemComImagem.idItem ? itemComImagem : i))
-    //     : [...atual, itemComImagem]
-    // );
 
     setCarrinho((atual) =>
     atual.some((i) => i.idItem === itemPersonalizado.idItem)
@@ -1361,37 +1341,28 @@ function ConteudoCardapio() {
     setCarrinhoAberto(true);
   }
 
-  function finalizarPedidoSucesso(dadosPedido) {
-    const proximaSenha = (pedidos.reduce((max, p) => Math.max(max, p.senha || 0), 0) || 0) + 1;
+  async function finalizarPedidoSucesso(dadosPedido) {
+     try {
+        const criado = await adicionarPedido({
+          itens: carrinho,
+          ...dadosPedido,   // nomeCliente, tipoConsumo, formaPagamento
+        });
 
-    const novoPedido = {
-      id: crypto.randomUUID(),
-      senha: proximaSenha,
-      status: 'fila',
-      criadoEm: Date.now(),
-      itens: carrinho,
-      total: totalCarrinho,
-      ...dadosPedido,
-    };
-
-    if (adicionarPedido) {
-      adicionarPedido(novoPedido);
-    } else if (setPedidos) {
-      setPedidos((atual) => [novoPedido, ...atual]);
+        setCarrinho([]);
+        setCheckoutAberto(false);
+        setIdAcompanharAtivo(criado.id);   // o id verdadeiro, vindo da API
+        setAcompanharAberto(true);
+      } catch (erro) {
+        window.alert(erro.message);
     }
 
-    setMeusIds((prev) => [...prev, novoPedido.id]);
-    setCarrinho([]);
-    setCheckoutAberto(false);
-    setIdAcompanharAtivo(novoPedido.id);
-    setAcompanharAberto(true);
   }
 
-  function atualizarPedidoLocal(pedidoAtualizado) {
-    if (setPedidos) {
-      setPedidos((atual) =>
-        atual.map((p) => (p.id === pedidoAtualizado.id ? pedidoAtualizado : p))
-      );
+  async function atualizarPedidoLocal(pedidoAtualizado) {
+      try {
+        await atualizarPedido(pedidoAtualizado.id, pedidoAtualizado);
+      } catch (erro) {
+        window.alert(erro.message);
     }
   }
 

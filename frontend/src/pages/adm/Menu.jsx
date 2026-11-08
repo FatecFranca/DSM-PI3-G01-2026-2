@@ -8,7 +8,7 @@ import SecaoCategoria from "./Components/SecaoCategoria";
 import ModalCategoria from "./Components/ModalCategoria";
 import ModalPrato from "./Components/ModalPrato";
 
-import { enviarImagem, exlcuirImagem, atualizarImagem } from "../../services/produtoApi";
+import { enviarImagem } from "../../services/produtoApi";
 
 import "../../styles/MenuAdm.css";
 
@@ -30,7 +30,8 @@ function Menu() {
         adicionarProduto,
         editarProduto,
         excluirProduto,
-        recarregarImagens
+        recarregar
+        //recarregarImagens
     } = useCardapio();
 
     const [idSelecionado, setIdSelecionado] = useState("");
@@ -73,36 +74,32 @@ function Menu() {
 
         try {
 
-            const pratoAtual = produtos.find((p) => String(p.id) === String(pratoEmEdicaoId));
-            let codigoImagem = pratoAtual?.codigoImagem;
-
-            // Esse if verifica se a imagem ja está salva ou se é uma nova imagem
-            if (arquivoImagem) {
-                const salvo = codigoImagem
-                    ? await atualizarImagem(codigoImagem, arquivoImagem) // PUT para atualizar
-                    : await enviarImagem(arquivoImagem);                // ou POST para adicionar
-                codigoImagem = salvo.id
-            }
-        
             const dadosPrato = {
                 categoriaId: categoriaAtual.id,
                 nome: nomePrato,
                 descricao: descricaoPrato,
                 preco: precoPrato,
-                codigoImagem,
+                //codigoImagem,
                 ingredientes: ingredientesPrato,
                 adicionais: adicionaisPrato,
                 tamanhos: tamanhosPrato,
                 combos: combosPrato
             };
 
+            let idProduto = pratoEmEdicaoId;
+
             if (pratoEmEdicaoId) {
-                editarProduto(pratoEmEdicaoId, dadosPrato);
+                await editarProduto(pratoEmEdicaoId, dadosPrato);
             } else {
-                adicionarProduto(dadosPrato);
+                const criado = await adicionarProduto(dadosPrato)
+                idProduto = criado.id;
             }
 
-            await recarregarImagens();
+            if (arquivoImagem) {
+                await enviarImagem(idProduto, arquivoImagem);
+                await recarregar();
+            }
+            
             fecharModalPrato();
         }
         catch (erro) {
@@ -162,9 +159,7 @@ function Menu() {
     async function handleExcluirProduto(produto) {
         if (window.confirm(`Deseja realmente excluir o prato "${produto.nome}"?`)) {
             try {
-                if(produto.codigoImagem) await exlcuirImagem(produto.codigoImagem);
-                excluirProduto(produto.id);
-                await recarregarImagens();
+                await excluirProduto(produto.id)
             }
             catch (erro) {
                 alert(erro.message)

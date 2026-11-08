@@ -2,177 +2,217 @@ import {
   createContext,
   useContext,
   useEffect,
+  useCallback,
   useState,
 } from "react";
 
-import { listarTodos } from "../services/produtoApi";
+import {
+  listarCategorias,
+  criarCategoria,
+  atualizarCategoria,
+  excluirCategoria as excluirCategoriaNaApi,
+} from "../services/categoriaApi";
+
+import {
+  listarProdutos,
+  criarProduto,
+  atualizarProduto,
+  excluirProduto as excluirProdutoNaApi,
+} from "../services/produtoApi";
+
+import {
+  listarPedidos,
+  criarPedido,
+  atualizarStatusPedido,
+  atualizarTempoPreparo,
+  avaliarPedido,
+} from "../services/pedidoApi"; 
 
 const CardapioContext = createContext(null);
 
-// Função auxiliar para carregar dados salvos no navegador (LocalStorage)
-function carregarDados(chave, valorInicial) {
+// Chave do localStorage que guarda só os IDs dos pedidos deste aparelho.
+// O pedido em si fica no Mongo; aqui é apenas "quais são meus".
+const CHAVE_MEUS_PEDIDOS = "meusPedidosIds";
+
+function carregarMeusPedidos() {
   try {
-    const dados = localStorage.getItem(chave);
-    return dados ? JSON.parse(dados) : valorInicial;
+    return JSON.parse(localStorage.getItem(CHAVE_MEUS_PEDIDOS) || "[]");
   } catch {
-    return valorInicial;
+    return [];
   }
 }
 
 export function CardapioProvider({ children }) {
-  // Estado que armazena a lista de categorias criadas
-  const [categorias, setCategorias] = useState(() => 
-    carregarDados("categorias", [])
-  );
+  const [categorias, setCategorias] = useState([]);
+  const [produtos, setProdutos] = useState([]);
+  const [pedidos, setPedidos] = useState([]);
 
-  // Estado que armazena a lista de produtos vinculados
-  const [produtos, setProdutos] = useState(() => 
-    carregarDados("produtos", [])
-  );
+  const [carregando, setCarregando] = useState(true);
+  const [erro, setErro] = useState(null);
 
-  // Estado que armazena a url das imagens
-  const [urlsImagens, setUrlsImagens] = useState({});
+  // Estado que armazena a url das imagens  //////////////////////////////////////
+  const [urlsImagens, setUrlsImagens] = useState({}); 
 
-  // Estado que armazena os pedidos feitos pelos clientes (painel da cozinha)
-  const [pedidos, setPedidos] = useState(() =>
-    carregarDados("pedidos", [])
-  );
+  // Mantidos em memória: o carrinho é local, não vai para o banco
+  // até o cliente fechar o pedido no checkout.
+  const [meusIds, setMeusIds] = useState(carregarMeusPedidos); //////////////////////////////////
 
-  // Sincroniza as categorias com o LocalStorage sempre que houver alteração
-  useEffect(() => {
-    localStorage.setItem("categorias", JSON.stringify(categorias));
-  }, [categorias]);
+  // ---------------------------------------------------------------
+  // Carga inicial: categorias, produtos e pedidos vêm da API
+  // ---------------------------------------------------------------
+  const recarregar = useCallback(async () => {
+    setCarregando(true);
+    setErro(null);
 
-  // Sincroniza os produtos com o LocalStorage sempre que houver alteração
-  useEffect(() => {
-    localStorage.setItem("produtos", JSON.stringify(produtos));
-  }, [produtos]);
+    try {
+      const [categoriasDaApi, produtosDaApi, pedidosDaApi] = await Promise.all([
+        listarCategorias(),
+        listarProdutos(),
+        listarPedidos(),
+      ]);
 
-  // Sincroniza os pedidos com o LocalStorage sempre que houver alteração
-  useEffect(() => {
-    localStorage.setItem("pedidos", JSON.stringify(pedidos));
-  }, [pedidos]);
-
-  // Quando OUTRA aba do mesmo navegador altera os pedidos (ex.: o cliente
-  // finaliza um pedido enquanto a cozinha está aberta em outra aba), atualiza aqui.
-  useEffect(() => {
-    function aoMudarStorage(evento) {
-      if (evento.key !== "pedidos") return;
-      try {
-        setPedidos(evento.newValue ? JSON.parse(evento.newValue) : []);
-      } catch {
-        // ignora valor inválido
-      }
+      setCategorias(categoriasDaApi);
+      setProdutos(produtosDaApi);
+      setPedidos(pedidosDaApi);
+    } catch (falha) {
+      setErro(falha.message || "Não foi possível carregar o cardápio.");
+    } finally {
+      setCarregando(false);
     }
-    window.addEventListener("storage", aoMudarStorage);
-    return () => window.removeEventListener("storage", aoMudarStorage);
   }, []);
-
-  // Função para adicionar uma nova categoria
-  function adicionarCategoria(texto, icone) {
-    const novaCategoria = {
-      id: crypto.randomUUID(), // Cria um ID único
-      texto,
-      icone,
-    };
-    setCategorias((lista) => [...lista, novaCategoria]);
-  }
-
-  // Função para editar uma categoria existente
-  function editarCategoria(id, texto, icone) {
-    setCategorias((lista) =>
-      lista.map((categoria) =>
-        String(categoria.id) === String(id)
-          ? { ...categoria, texto, icone }
-          : categoria
-      )
-    );
-  }
-
-  // Função para excluir uma categoria e limpar produtos vinculados
-  function excluirCategoria(id) {
-    setCategorias((lista) =>
-      lista.filter((categoria) => String(categoria.id) !== String(id))
-    );
-    // Remove os produtos que pertenciam a essa categoria excluída
-    setProdutos((lista) =>
-      lista.filter((produto) => String(produto.categoriaId) !== String(id))
-    );
-  }
-
-  // Função para adicionar um novo produto vinculado a uma categoria
-  function adicionarProduto(produto) {
-    const novoProduto = { id: crypto.randomUUID(), ...produto };
-    setProdutos((lista) => [...lista, novoProduto]);
-  }
-
-  // Função para EDITAR um produto existente (ADICIONADA AQUI)
-  function editarProduto(id, dadosAtualizados) {
-    setProdutos((lista) =>
-      lista.map((produto) =>
-        String(produto.id) === String(id)
-          ? { ...produto, ...dadosAtualizados }
-          : produto
-      )
-    );
-  }
-
-  // Função para excluir um produto pelo ID
-  function excluirProduto(id) {
-    setProdutos((lista) => lista.filter((produto) => String(produto.id) !== String(id)));
-  }
-
-  async function recarregarImagens() {
-    const lista = await listarTodos();
-    const mapa = {};
-    lista.forEach((img) => { mapa[img.id] = img.urlTemporariaImagem; });
-    setUrlsImagens(mapa);
-  }
-
-  // Vai rodar uma vez quando o app abre
 
   useEffect(() => {
-    recarregarImagens();
+    recarregar();
+  }, [recarregar]);
+
+  // A cozinha precisa ver pedido novo sem apertar F5.
+  // Um polling simples resolve sem precisar de WebSocket.
+  useEffect(() => {
+    const timer = setInterval(async () => {
+      try {
+        const pedidosDaApi = await listarPedidos();
+        setPedidos(pedidosDaApi);
+      } catch {
+        // se a API cair, mantém o que já está na tela
+      }
+    }, 10000);
+
+    return () => clearInterval(timer);
   }, []);
 
-  const produtosComImagem = produtos.map((p) => ({
-    ...p,
-    imagem: urlsImagens[p.codigoImagem] || '',
-  }));
+  useEffect(() => {
+    localStorage.setItem(CHAVE_MEUS_PEDIDOS, JSON.stringify(meusIds));
+  }, [meusIds]);
 
-  // Cria um pedido para a cozinha e devolve o pedido criado (com a senha).
-  // A senha é um número sequencial que recomeça a cada dia (1, 2, 3...),
-  // assim dois clientes nunca ficam com a mesma senha no mesmo dia.
-  function adicionarPedido(dadosPedido) {
-    const hoje = new Date().toDateString();
-    const pedidosDeHoje = pedidos.filter(
-      (p) => new Date(p.criadoEm).toDateString() === hoje
-    );
-    const maiorSenha = pedidosDeHoje.reduce((maior, p) => Math.max(maior, p.senha), 0);
-
-    const novoPedido = {
-      id: crypto.randomUUID(),
-      senha: maiorSenha + 1,
-      status: "fila", // fila -> preparando -> pronto -> entregue
-      tempoPreparoMin: 15,
-      criadoEm: Date.now(),
-      iniciadoEm: null,
-      prontoEm: null,
-      entregueEm: null,
-      ...dadosPedido,
-    };
-
-    setPedidos((lista) => [...lista, novoPedido]);
-    return novoPedido;
+  // ---------------------------------------------------------------
+  // Categorias
+  // ---------------------------------------------------------------
+  async function adicionarCategoria(texto, icone) {
+    const criada = await criarCategoria(texto, icone);
+    setCategorias((lista) => [...lista, criada]);
+    return criada;
   }
 
-  // Atualiza campos de um pedido (status, tempo de preparo, horários...)
-  function atualizarPedido(id, dadosAtualizados) {
-    setPedidos((lista) =>
-      lista.map((pedido) =>
-        pedido.id === id ? { ...pedido, ...dadosAtualizados } : pedido
-      )
+  async function editarCategoria(id, texto, icone) {
+    const atualizada = await atualizarCategoria(id, texto, icone);
+
+    setCategorias((lista) =>
+      lista.map((categoria) => (categoria.id === id ? atualizada : categoria))
     );
+
+    return atualizada;
+  }
+
+  // O backend recusa excluir categoria com produtos vinculados.
+  // O front antigo apagava os produtos junto; agora quem decide é a API,
+  // e o erro volta para a tela mostrar.
+  async function excluirCategoria(id) {
+    await excluirCategoriaNaApi(id);
+
+    setCategorias((lista) => lista.filter((categoria) => categoria.id !== id));
+    setProdutos((lista) => lista.filter((produto) => produto.categoriaId !== id));
+  }
+
+  // ---------------------------------------------------------------
+  // Produtos
+  // ---------------------------------------------------------------
+  async function adicionarProduto(produto) {
+    const criado = await criarProduto(produto);
+    await recarregar();
+    return criado;
+  }
+
+  async function editarProduto(id, dadosAtualizados) {
+    const atualizado = await atualizarProduto(id, dadosAtualizados);
+
+    setProdutos((lista) =>
+      lista.map((produto) => (produto.id === id ? atualizado : produto))
+    );
+
+    return atualizado;
+  }
+
+  async function excluirProduto(id) {
+    await excluirProdutoNaApi(id);
+    setProdutos((lista) => lista.filter((produto) => produto.id !== id));
+  }
+
+  // ---------------------------------------------------------------
+  // Pedidos
+  // ---------------------------------------------------------------
+  async function adicionarPedido(dadosPedido) {
+    const criado = await criarPedido(dadosPedido);
+
+    setPedidos((lista) => [...lista, criado]);
+    setMeusIds((lista) => [...lista, criado.id]);
+
+    return criado;
+  }
+
+  async function atualizarPedido(id, dadosAtualizados) {
+    const atual = pedidos.find((pedido) => pedido.id === id);
+
+    // A cozinha manda { status } ou { tempoPreparoMin }.
+    // A tela do cliente manda { avaliacao } ou { avaliacaoPulada }.
+    if (dadosAtualizados.status && dadosAtualizados.status !== atual?.status) {
+      const atualizado = await atualizarStatusPedido(id, dadosAtualizados.status);
+      setPedidos((lista) => lista.map((p) => (p.id === id ? atualizado : p)));
+      return atualizado;
+    }
+
+    if (
+      dadosAtualizados.tempoPreparoMin != null &&
+      dadosAtualizados.tempoPreparoMin !== atual?.tempoPreparoMin
+    ) {
+      const atualizado = await atualizarTempoPreparo(
+        id,
+        dadosAtualizados.tempoPreparoMin
+      );
+      setPedidos((lista) => lista.map((p) => (p.id === id ? atualizado : p)));
+      return atualizado;
+    }
+
+    if (dadosAtualizados.avaliacao) {
+      const atualizado = await avaliarPedido(
+        id,
+        dadosAtualizados.avaliacao.nota,
+        dadosAtualizados.avaliacao.comentario
+      );
+      setPedidos((lista) => lista.map((p) => (p.id === id ? atualizado : p)));
+      return atualizado;
+    }
+
+    // "Agora não" da avaliação: não existe campo no backend,
+    // fica só na sessão do navegador.
+    if (dadosAtualizados.avaliacaoPulada) {
+      setPedidos((lista) =>
+        lista.map((p) =>
+          p.id === id ? { ...p, avaliacaoPulada: true, fechouAvaliacao: true } : p
+        )
+      );
+    }
+
+    return atual;
   }
 
   return (
@@ -182,14 +222,18 @@ export function CardapioProvider({ children }) {
         adicionarCategoria,
         editarCategoria,
         excluirCategoria,
-        produtos: produtosComImagem,
-        recarregarImagens,
+        produtos,
         adicionarProduto,
-        editarProduto, // <--- EXPOSTO AQUI
+        editarProduto,
         excluirProduto,
         pedidos,
+        setPedidos,
         adicionarPedido,
         atualizarPedido,
+        meusIds,
+        recarregar,
+        carregando,
+        erro,
       }}
     >
       {children}
@@ -197,11 +241,12 @@ export function CardapioProvider({ children }) {
   );
 }
 
-// Hook personalizado para facilitar o uso do contexto nas páginas
 export function useCardapio() {
   const contexto = useContext(CardapioContext);
+
   if (!contexto) {
     throw new Error("useCardapio precisa estar dentro de CardapioProvider");
   }
+
   return contexto;
 }

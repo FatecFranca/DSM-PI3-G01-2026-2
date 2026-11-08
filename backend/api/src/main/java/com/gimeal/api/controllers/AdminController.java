@@ -16,10 +16,12 @@ import org.springframework.web.bind.annotation.RestController;
 import com.gimeal.api.models.Admin;
 import com.gimeal.api.services.AdminService;
 
+import jakarta.validation.Valid;
+
 @RestController
 @RequestMapping("/admin")
 public class AdminController {
-    
+
     private final AdminService service;
 
     public AdminController(AdminService service) {
@@ -39,7 +41,7 @@ public class AdminController {
     }
 
     @PostMapping
-    public ResponseEntity<Admin> criar(@RequestBody Admin admin) {
+    public ResponseEntity<Admin> criar(@Valid @RequestBody Admin admin) {
         Admin adminSalvo = service.salvar(admin);
 
         return ResponseEntity
@@ -50,15 +52,13 @@ public class AdminController {
     @PutMapping("/{id}")
     public ResponseEntity<Admin> atualizar(
             @PathVariable String id,
-            @RequestBody Admin admin) {
+            @Valid @RequestBody Admin admin) {
 
         if (service.buscarPorId(id).isEmpty()) {
             return ResponseEntity.notFound().build();
         }
 
         admin.setId(id);
-
-
 
         Admin adminAtualizado = service.salvar(admin);
 
@@ -67,14 +67,7 @@ public class AdminController {
 
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> excluir(@PathVariable String id) {
-        
-        if (service.buscarPorId(id).isEmpty()) {
-            return ResponseEntity.notFound().build();
-        }
-
         service.excluir(id);
-
         return ResponseEntity.noContent().build();
     }
-
 }

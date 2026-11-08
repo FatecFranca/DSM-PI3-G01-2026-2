@@ -13,13 +13,16 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.gimeal.api.dtos.IngredienteRequest;
 import com.gimeal.api.models.Ingrediente;
 import com.gimeal.api.services.IngredienteService;
 
+import jakarta.validation.Valid;
+
 @RestController
-@RequestMapping("/ingrediente")
+@RequestMapping("/ingredientes")
 public class IngredienteController {
-    
+
     private final IngredienteService service;
 
     public IngredienteController(IngredienteService service) {
@@ -39,8 +42,8 @@ public class IngredienteController {
     }
 
     @PostMapping
-    public ResponseEntity<Ingrediente> criar(@RequestBody Ingrediente ingrediente) {
-        Ingrediente ingredienteSalvo = service.salvar(ingrediente);
+    public ResponseEntity<Ingrediente> criar(@Valid @RequestBody IngredienteRequest request) {
+        Ingrediente ingredienteSalvo = service.salvar(request);
 
         return ResponseEntity
                 .status(HttpStatus.CREATED)
@@ -50,29 +53,14 @@ public class IngredienteController {
     @PutMapping("/{id}")
     public ResponseEntity<Ingrediente> atualizar(
             @PathVariable String id,
-            @RequestBody Ingrediente ingrediente) {
+            @Valid @RequestBody IngredienteRequest request) {
 
-        if (service.buscarPorId(id).isEmpty()) {
-            return ResponseEntity.notFound().build();
-        }
-
-        ingrediente.setId(id);
-
-        Ingrediente ingredienteAtualizado = service.salvar(ingrediente);
-
-        return ResponseEntity.ok(ingredienteAtualizado);
+        return ResponseEntity.ok(service.atualizar(id, request));
     }
 
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> excluir(@PathVariable String id) {
-        
-        if (service.buscarPorId(id).isEmpty()) {
-            return ResponseEntity.notFound().build();
-        }
-
         service.excluir(id);
-
         return ResponseEntity.noContent().build();
     }
-
 }

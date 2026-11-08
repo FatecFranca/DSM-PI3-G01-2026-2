@@ -1,4 +1,4 @@
-package com.gimeal.api.service;
+package com.gimeal.api.services;
 
 import java.io.File;
 import java.io.FileOutputStream;
