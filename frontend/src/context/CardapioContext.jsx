@@ -50,12 +50,12 @@ export function CardapioProvider({ children }) {
   const [carregando, setCarregando] = useState(true);
   const [erro, setErro] = useState(null);
 
-  // Estado que armazena a url das imagens  //////////////////////////////////////
+  // Estado que armazena a url das imagens  
   const [urlsImagens, setUrlsImagens] = useState({}); 
 
   // Mantidos em memória: o carrinho é local, não vai para o banco
   // até o cliente fechar o pedido no checkout.
-  const [meusIds, setMeusIds] = useState(carregarMeusPedidos); //////////////////////////////////
+  const [meusIds, setMeusIds] = useState(carregarMeusPedidos); 
 
   // ---------------------------------------------------------------
   // Carga inicial: categorias, produtos e pedidos vêm da API
