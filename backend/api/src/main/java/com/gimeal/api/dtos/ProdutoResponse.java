@@ -12,6 +12,7 @@ public record ProdutoResponse(
         Double precoBase,
         String descricao,
         String codigoImagem,
+        String urlTemporariaImagem,
         String categoriaId,
         CategoriaResumo categoria,
         List<Tamanhos> tamanhos,

@@ -5,8 +5,10 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.server.ResponseStatusException;
 
 import com.gimeal.api.dtos.IngredienteRequest;
@@ -30,6 +32,9 @@ public class ProdutoService {
     private final ProdutoRepository repository;
     private final CategoriaRepository categoriaRepository;
     private final IngredienteRepository ingredienteRepository;
+
+    @Autowired 
+    private S3Service s3Service;
 
     public ProdutoService(
             ProdutoRepository repository,
@@ -81,13 +86,44 @@ public class ProdutoService {
     }
 
     public void excluir(String id) {
-        if (!repository.existsById(id)) {
-            throw new ResponseStatusException(
-                    HttpStatus.NOT_FOUND,
-                    "Produto não encontrado.");
+        Produto produto = repository.findById(id)
+                .orElseThrow(() -> new ResponseStatusException(
+                    HttpStatus.NOT_FOUND, "Produto não encontrado."));
+        
+        if (produto.getCodigoImagem() != null) {
+            s3Service.excluirImagemS3(produto.getCodigoImagem());
         }
 
         repository.deleteById(id);
+    }
+
+    // Metodos para tratar apenas a imagem que é tipo Multipart File
+
+    public ProdutoResponse atualizarImagem(String id, MultipartFile imagem) {
+        Produto produto = repository.findById(id)
+                .orElseThrow(() -> new ResponseStatusException(
+                    HttpStatus.NOT_FOUND, "Produto não encontrado."));
+        
+        if (produto.getCodigoImagem() != null) {
+            s3Service.updateFile(imagem, produto.getCodigoImagem());
+        }
+        else {
+            produto.setCodigoImagem(s3Service.uploadFile(imagem));
+        }
+
+        return montarResposta(repository.save(produto));
+    }
+
+    public void excluirImagem(String id) {
+        Produto produto = repository.findById(id)
+                .orElseThrow(() -> new ResponseStatusException(
+                    HttpStatus.NOT_FOUND, "Produto não encontrado."));
+        
+        if (produto.getCodigoImagem() != null) {
+            s3Service.excluirImagemS3(produto.getCodigoImagem());
+            produto.setCodigoImagem(null);
+            repository.save(produto);
+        }
     }
 
     private void aplicarDados(Produto produto, ProdutoRequest request) {
@@ -95,8 +131,6 @@ public class ProdutoService {
         produto.setPrecoBase(request.precoBase());
         produto.setDescricao(request.descricao());
         produto.setCategoriaId(request.categoriaId());
-        produto.setCodigoImagem(request.codigoImagem());
-
         produto.setTamanhos(tratarTamanhos(request.tamanhos()));
         produto.setIngredientesBaseIds(tratarIngredientesBase(request.ingredientes()));
         produto.setIngredientesAdicionaisIds(tratarAdicionais(request.adicionais()));
@@ -213,6 +247,11 @@ public class ProdutoService {
     private ProdutoResponse montarResposta(Produto produto) {
         CategoriaResumo categoria = null;
 
+        String urlTemporaria = null;
+        if (produto.getCodigoImagem() != null) {
+            urlTemporaria = s3Service.criarGetUrlTemporaria(produto.getCodigoImagem());
+        }
+
         if (produto.getCategoriaId() != null) {
             Categoria encontrada = categoriaRepository
                     .findById(produto.getCategoriaId())
@@ -247,6 +286,7 @@ public class ProdutoService {
                 produto.getPrecoBase(),
                 produto.getDescricao(),
                 produto.getCodigoImagem(),
+                urlTemporaria,
                 produto.getCategoriaId(),
                 categoria,
                 produto.getTamanhos(),

@@ -8,6 +8,8 @@ import SecaoCategoria from "./Components/SecaoCategoria";
 import ModalCategoria from "./Components/ModalCategoria";
 import ModalPrato from "./Components/ModalPrato";
 
+import { enviarImagem } from "../../services/produtoApi";
+
 import "../../styles/MenuAdm.css";
 
 // Tamanhos padrão de todo prato novo (o admin marca quais valem)
@@ -27,7 +29,9 @@ function Menu() {
         excluirCategoria,
         adicionarProduto,
         editarProduto,
-        excluirProduto
+        excluirProduto,
+        recarregar
+        //recarregarImagens
     } = useCardapio();
 
     const [idSelecionado, setIdSelecionado] = useState("");
@@ -47,7 +51,8 @@ function Menu() {
     const [nomePrato, setNomePrato] = useState('');
     const [descricaoPrato, setDescricaoPrato] = useState('');
     const [precoPrato, setPrecoPrato] = useState('');
-    const [imagemPrato, setImagemPrato] = useState('');
+    const [imagemPrato, setImagemPrato] = useState(''); 
+    const [arquivoImagem, setArquivoImagem] = useState(null);
 
     // Listas configuráveis do prato (o cliente vê isso ao escolher o produto)
     const [ingredientesPrato, setIngredientesPrato] = useState([]); // [{ id, nome }]
@@ -63,29 +68,43 @@ function Menu() {
         setIsModalCategoriaOpen(false);
     }
 
-    function handleSalvarPrato(e) {
+    async function handleSalvarPrato(e) {
         e.preventDefault();
         if (!nomePrato.trim() || !categoriaAtual) return;
 
-        const dadosPrato = {
-            categoriaId: categoriaAtual.id,
-            nome: nomePrato,
-            descricao: descricaoPrato,
-            preco: precoPrato,
-            imagem: imagemPrato,
-            ingredientes: ingredientesPrato,
-            adicionais: adicionaisPrato,
-            tamanhos: tamanhosPrato,
-            combos: combosPrato
-        };
+        try {
 
-        if (pratoEmEdicaoId) {
-            editarProduto(pratoEmEdicaoId, dadosPrato);
-        } else {
-            adicionarProduto(dadosPrato);
+            const dadosPrato = {
+                categoriaId: categoriaAtual.id,
+                nome: nomePrato,
+                descricao: descricaoPrato,
+                preco: precoPrato,
+                //codigoImagem,
+                ingredientes: ingredientesPrato,
+                adicionais: adicionaisPrato,
+                tamanhos: tamanhosPrato,
+                combos: combosPrato
+            };
+
+            let idProduto = pratoEmEdicaoId;
+
+            if (pratoEmEdicaoId) {
+                await editarProduto(pratoEmEdicaoId, dadosPrato);
+            } else {
+                const criado = await adicionarProduto(dadosPrato)
+                idProduto = criado.id;
+            }
+
+            if (arquivoImagem) {
+                await enviarImagem(idProduto, arquivoImagem);
+                await recarregar();
+            }
+            
+            fecharModalPrato();
         }
-
-        fecharModalPrato();
+        catch (erro) {
+            alert(erro.message);
+        }
     }
 
     function abrirModalNovoPrato() {
@@ -94,6 +113,7 @@ function Menu() {
         setDescricaoPrato('');
         setPrecoPrato('');
         setImagemPrato('');
+        setArquivoImagem(null);
         setIngredientesPrato([]);
         setAdicionaisPrato([]);
         setTamanhosPrato(copiarTamanhos());
@@ -107,6 +127,7 @@ function Menu() {
         setDescricaoPrato(produto.descricao);
         setPrecoPrato(produto.preco);
         setImagemPrato(produto.imagem || '');
+        setArquivoImagem(null);
         // Pratos antigos podem não ter esses campos ainda
         setIngredientesPrato(produto.ingredientes || []);
         setAdicionaisPrato(produto.adicionais || []);
@@ -120,12 +141,11 @@ function Menu() {
         setPratoEmEdicaoId(null);
     }
 
-    function handleUploadImagem(e) {
+    function handleUploadImagem(e) { 
         const file = e.target.files[0];
         if (file) {
-            const reader = new FileReader();
-            reader.onloadend = () => setImagemPrato(reader.result);
-            reader.readAsDataURL(file);
+            setArquivoImagem(file)
+            setImagemPrato(URL.createObjectURL(file));
         }
     }
 
@@ -136,9 +156,14 @@ function Menu() {
         }
     }
 
-    function handleExcluirProduto(produto) {
+    async function handleExcluirProduto(produto) {
         if (window.confirm(`Deseja realmente excluir o prato "${produto.nome}"?`)) {
-            excluirProduto(produto.id);
+            try {
+                await excluirProduto(produto.id)
+            }
+            catch (erro) {
+                alert(erro.message)
+            }
         }
     }
 
@@ -193,7 +218,7 @@ function Menu() {
                 setDescricaoPrato={setDescricaoPrato}
                 precoPrato={precoPrato}
                 setPrecoPrato={setPrecoPrato}
-                imagemPrato={imagemPrato}
+                imagemPrato={imagemPrato}  
                 onUploadImagem={handleUploadImagem}
                 ingredientes={ingredientesPrato}
                 setIngredientes={setIngredientesPrato}

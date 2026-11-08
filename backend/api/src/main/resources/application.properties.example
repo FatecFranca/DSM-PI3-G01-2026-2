@@ -4,3 +4,10 @@ spring.application.name=api
 server.port=8888
 
 spring.mongodb.uri=
+
+# Conexão do AmazonS3
+aws.bucket-name=
+aws.region=
+
+aws.access-key=
+aws.secret-key=

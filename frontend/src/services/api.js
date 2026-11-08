@@ -16,10 +16,11 @@ export class ErroApi extends Error {
 // Centraliza o fetch para não repetir checagem de resposta
 // em cada função de domínio.
 export async function requisitar(caminho, opcoes = {}) {
+    const eUmArquivo = opcoes.body instanceof FormData
     const resposta = await fetch(`${URL_BASE}${caminho}`, {
         ...opcoes,
         headers: {
-            'Content-Type': 'application/json',
+            ...(eUmArquivo ? {} : {'Content-Type': 'application/json'}),
             ...(opcoes.headers || {}),
         },
     });
@@ -77,6 +78,7 @@ function extrairMensagem(corpo) {
 export const api = {
     get: (caminho) => requisitar(caminho),
     post: (caminho, dados) => requisitar(caminho, { method: 'POST', body: JSON.stringify(dados) }),
+    upload: (caminho, formData) => requisitar(caminho, {method: 'PUT', body: formData}),
     put: (caminho, dados) => requisitar(caminho, { method: 'PUT', body: JSON.stringify(dados) }),
     patch: (caminho, dados) => requisitar(caminho, { method: 'PATCH', body: JSON.stringify(dados) }),
     delete: (caminho) => requisitar(caminho, { method: 'DELETE' }),

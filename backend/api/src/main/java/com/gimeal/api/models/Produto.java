@@ -23,6 +23,7 @@ public class Produto {
     @PositiveOrZero(message = "O preço base não pode ser negativo.")
     private Double precoBase;
 
+    @NotBlank(message = "A descrição do produto é obrigatória")
     private String descricao;
 
     private List<Tamanhos> tamanhos = new ArrayList<>();

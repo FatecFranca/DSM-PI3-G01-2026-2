@@ -31,7 +31,7 @@ function paraProdutoDoFront(produto) {
         nome: produto.nome,
         descricao: produto.descricao,
         preco: paraTextoMoeda(produto.precoBase),
-        imagem: produto.codigoImagem || '',
+        imagem: produto.urlTemporariaImagem || '',
         ingredientes: produto.ingredientesBase || [],
         adicionais: produto.adicionais || [],
         tamanhos: produto.tamanhos || [],
@@ -47,7 +47,6 @@ function paraProdutoDaApi(produto) {
         precoBase: paraNumero(produto.preco),
         descricao: produto.descricao || '',
         categoriaId: produto.categoriaId,
-        codigoImagem: produto.imagem || null,
         tamanhos: (produto.tamanhos || []).map((tamanho) => ({
             id: tamanho.id,
             nome: tamanho.nome,
@@ -94,4 +93,10 @@ export async function atualizarProduto(id, produto) {
 
 export function excluirProduto(id) {
     return api.delete(`/produtos/${id}`);
+}
+
+export function enviarImagem(id, arquivo) {
+    const formData = new FormData();
+    formData.append('imagem', arquivo);
+    return api.upload(`/produtos/${id}/imagem`, formData);
 }

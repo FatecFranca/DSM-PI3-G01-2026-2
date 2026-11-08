@@ -3,5 +3,6 @@
   "spring.initializr.defaultLanguage": "Java",
   "spring.initializr.defaultJavaVersion": "25",
   "spring.initializr.defaultPackaging": "JAR",
-  "spring.initializr.defaultOpenProjectMethod": "Open"
+  "spring.initializr.defaultOpenProjectMethod": "Open",
+  "java.compile.nullAnalysis.mode": "automatic"
 }

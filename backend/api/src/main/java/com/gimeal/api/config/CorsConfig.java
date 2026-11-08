@@ -4,12 +4,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.web.servlet.config.annotation.CorsRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
-/**
- * Libera o frontend (Vite, porta 5173) a chamar a API direto do navegador.
- *
- * Sem isso o browser bloqueia as requisicoes com erro de CORS, porque o
- * frontend roda em localhost:5173 e a API em localhost:8888 (origens diferentes).
- */
+// Permitindo a rota do front-end de realizar os CRUDs
 @Configuration
 public class CorsConfig implements WebMvcConfigurer {
 

@@ -1148,8 +1148,13 @@ export function ModalProdutoCliente({ produto, produtos, itemInicial = null, onF
 // Tela do Carrinho
 // ---------------------------------------------------------------
 export function TelaCarrinho({ itens, onEditarItem, onRemoverItem, onCancelarPedido, onFechar, onAbrirCheckout }) {
+  const { produtos } = useCardapio();
   const total = itens.reduce((soma, item) => soma + item.total, 0);
 
+  function imagemDoItem(item) {
+    return produtos.find((p) => p.id === item.produtoId)?.imagem || '';
+  }
+  
   function remover(item, e) {
     e.stopPropagation();
     if (window.confirm(`Remover "${item.nome}" do pedido?`)) {
@@ -1193,8 +1198,8 @@ export function TelaCarrinho({ itens, onEditarItem, onRemoverItem, onCancelarPed
                 color: '#AAA',
                 fontSize: '10px'
               }}>
-                {item.imagem ? (
-                  <img src={item.imagem} alt={item.nome} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                {imagemDoItem(item) ? (
+                  <img src={imagemDoItem(item)} alt={item.nome} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                 ) : (
                   'Sem foto'
                 )}
@@ -1266,7 +1271,7 @@ export function TelaCarrinho({ itens, onEditarItem, onRemoverItem, onCancelarPed
 // ---------------------------------------------------------------
 function ConteudoCardapio() {
   const imagensCardapio = [cafe, croassant, donnuts];
-  const { categorias, produtos, pedidos = [], setPedidos, adicionarPedido } = useCardapio();
+  const { categorias, produtos, pedidos = [], adicionarPedido, atualizarPedido, meusIds } = useCardapio();
   const [categoriaAtiva, setCategoriaAtiva] = useState('todos');
   const [busca, setBusca] = useState('');
 
@@ -1276,14 +1281,6 @@ function ConteudoCardapio() {
   const [checkoutAberto, setCheckoutAberto] = useState(false);
   const [itemEmEdicao, setItemEmEdicao] = useState(null);
 
-  // Guarda quais IDs de pedidos pertencem a este aparelho/navegador
-  const [meusIds, setMeusIds] = useState(() => {
-    try {
-      return JSON.parse(localStorage.getItem('meusPedidosIds') || '[]');
-    } catch {
-      return [];
-    }
-  });
 
   const [acompanharAberto, setAcompanharAberto] = useState(false);
   const [idAcompanharAtivo, setIdAcompanharAtivo] = useState(null);
@@ -1333,54 +1330,39 @@ function ConteudoCardapio() {
   }
 
   function confirmarItem(itemPersonalizado) {
-    const produtoOriginal = produtos.find((p) => p.id === itemPersonalizado.produtoId);
-
-    const itemComImagem = {
-      ...itemPersonalizado,
-      imagem: produtoOriginal?.imagem || '',
-    };
 
     setCarrinho((atual) =>
-      atual.some((i) => i.idItem === itemComImagem.idItem)
-        ? atual.map((i) => (i.idItem === itemComImagem.idItem ? itemComImagem : i))
-        : [...atual, itemComImagem]
-    );
+    atual.some((i) => i.idItem === itemPersonalizado.idItem)
+      ? atual.map((i) => (i.idItem === itemPersonalizado.idItem ? itemPersonalizado : i))
+      : [...atual, itemPersonalizado]
+    )
 
     fecharProduto();
     setCarrinhoAberto(true);
   }
 
-  function finalizarPedidoSucesso(dadosPedido) {
-    const proximaSenha = (pedidos.reduce((max, p) => Math.max(max, p.senha || 0), 0) || 0) + 1;
+  async function finalizarPedidoSucesso(dadosPedido) {
+     try {
+        const criado = await adicionarPedido({
+          itens: carrinho,
+          ...dadosPedido,   // nomeCliente, tipoConsumo, formaPagamento
+        });
 
-    const novoPedido = {
-      id: crypto.randomUUID(),
-      senha: proximaSenha,
-      status: 'fila',
-      criadoEm: Date.now(),
-      itens: carrinho,
-      total: totalCarrinho,
-      ...dadosPedido,
-    };
-
-    if (adicionarPedido) {
-      adicionarPedido(novoPedido);
-    } else if (setPedidos) {
-      setPedidos((atual) => [novoPedido, ...atual]);
+        setCarrinho([]);
+        setCheckoutAberto(false);
+        setIdAcompanharAtivo(criado.id);   // o id verdadeiro, vindo da API
+        setAcompanharAberto(true);
+      } catch (erro) {
+        window.alert(erro.message);
     }
 
-    setMeusIds((prev) => [...prev, novoPedido.id]);
-    setCarrinho([]);
-    setCheckoutAberto(false);
-    setIdAcompanharAtivo(novoPedido.id);
-    setAcompanharAberto(true);
   }
 
-  function atualizarPedidoLocal(pedidoAtualizado) {
-    if (setPedidos) {
-      setPedidos((atual) =>
-        atual.map((p) => (p.id === pedidoAtualizado.id ? pedidoAtualizado : p))
-      );
+  async function atualizarPedidoLocal(pedidoAtualizado) {
+      try {
+        await atualizarPedido(pedidoAtualizado.id, pedidoAtualizado);
+      } catch (erro) {
+        window.alert(erro.message);
     }
   }
 
