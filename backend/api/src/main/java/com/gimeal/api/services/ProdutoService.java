@@ -131,8 +131,6 @@ public class ProdutoService {
         produto.setPrecoBase(request.precoBase());
         produto.setDescricao(request.descricao());
         produto.setCategoriaId(request.categoriaId());
-        //produto.setCodigoImagem(request.codigoImagem());////////////////////////////////////////////////////////////////
-
         produto.setTamanhos(tratarTamanhos(request.tamanhos()));
         produto.setIngredientesBaseIds(tratarIngredientesBase(request.ingredientes()));
         produto.setIngredientesAdicionaisIds(tratarAdicionais(request.adicionais()));
