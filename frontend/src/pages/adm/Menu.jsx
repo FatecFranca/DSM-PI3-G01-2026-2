@@ -79,7 +79,6 @@ function Menu() {
                 nome: nomePrato,
                 descricao: descricaoPrato,
                 preco: precoPrato,
-                //codigoImagem,
                 ingredientes: ingredientesPrato,
                 adicionais: adicionaisPrato,
                 tamanhos: tamanhosPrato,

@@ -8,7 +8,7 @@ export default function MenuAba() {
   const location = useLocation();
 
   // Descobre qual aba está ativa com base na URL
-  const abaAtiva = location.pathname === '/menu' ? 'menu' : 'aparencia';
+  const abaAtiva = location.pathname === '/menu' ? 'menu' : location.pathname === "/cozinha" ? 'cozinha' : 'aparencia';
 
   return (
     <div className="container-abas">
@@ -43,6 +43,22 @@ export default function MenuAba() {
           />
         )}
         <span className="texto-botao">Aparência</span>
+      </button>
+
+      {/* Botão Cozinha */}
+      <button 
+        className={`botao-aba ${abaAtiva === 'cozinha' ? 'ativo' : ''}`}
+        onClick={() => navigate('/cozinha')}
+      >
+        {/* Se a aba for cozinha, a pílula desliza para cá */}
+        {abaAtiva === 'cozinha' && (
+          <motion.div 
+            className="fundo-deslizante" 
+            layoutId="pill" 
+            transition={{ type: "spring", stiffness: 300, damping: 30 }}
+          />
+        )}
+        <span className="texto-botao">Cozinha</span>
       </button>
 
     </div>
