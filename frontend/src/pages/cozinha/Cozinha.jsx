@@ -3,6 +3,7 @@ import styled from 'styled-components';
 import { Minus, Plus, AlertTriangle } from 'lucide-react';
 import { useCardapio } from '../../context/CardapioContext';
 import Header from '../../componets/Header/Header';
+import MenuAba from "../../componets/MenuAba/MenuAba";
 
 // ---------------------------------------------------------------
 // Textos e Configurações
@@ -364,6 +365,7 @@ export default function Cozinha() {
   return (
     <Pagina>
       <Header />
+      <MenuAba />
 
       <ContainerCozinha>
         {atrasados.length > 0 && (
