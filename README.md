@@ -45,56 +45,75 @@
 ## Estrutura do Projeto
 
 ```text
+## Estrutura do Projeto
+
+```text
 DSM-PI3-G01-2026-2/
-├── .devcontainer/      # Configurações do Amb de desenvolvimento
-├── .vscode/                    # Configurações do Visual Studio Code
+├── .devcontainer/                 # Configurações do ambiente de desenvolvimento
 │
-├── backend/                    # Backend da aplicação
+├── backend/
 │   └── api/
-│       ├── .mvn/                # Configurações do Maven Wrapper
-│       └── src/
-│           ├── main/
-│           │   ├── java/com/gimeal/api/
-│           │   │   ├── config/       # Configurações da aplicação
-│           │   │   ├── controller/   # Controladores das requisições HTTP
-│           │   │   ├── model/
-│           │   │   │   ├── dto/      # Objetos de transferência de dados
-│           │   │   │   └── entity/   # Entidades do banco de dados
-│           │   │   ├── repository/   # Acesso e operações no MongoDB
-│           │   │   └── service/      # Regras e lógica de negócio
-│           │   │
-│           │   └── resources/        # Arquivos de configuração e recursos
-│           │
-│           └── test/                # Testes da aplicação
-│
-├── frontend/                    # Frontend da aplicação
-│   ├── public/                  # Arquivos públicos
-│   └── src/
-│       ├── assets/              # Imagens e recursos visuais
-│       ├── componets/           # Componentes reutilizáveis
-│       │   ├── Button/
-│       │   ├── Header/
-│       │   ├── IconesCategorias/
-│       │   ├── IconesPagamento/
-│       │   ├── Input/
-│       │   ├── ListaCategorias/
-│       │   ├── MenuAba/
-│       │   └── Slider/
+│       ├── .mvn/                  # Configurações do Maven Wrapper
+│       ├── src/
+│       │   ├── main/
+│       │   │   ├── java/com/gimeal/api/
+│       │   │   │   ├── config/          # Configurações da aplicação
+│       │   │   │   ├── controllers/     # Controladores das requisições HTTP
+│       │   │   │   ├── dtos/            # Objetos de transferência de dados
+│       │   │   │   ├── exceptions/      # Tratamento de exceções e erros
+│       │   │   │   ├── models/          # Modelos e estruturas de dados
+│       │   │   │   ├── repositories/    # Acesso e operações no MongoDB
+│       │   │   │   └── services/       # Regras de negócio e serviços
+│       │   │   │
+│       │   │   └── resources/
+│       │   │       ├── application.properties
+│       │   │       └── application.properties.example
+│       │   │
+│       │   └── test/                 # Testes do Back-End
 │       │
-│       ├── context/             # Gerenciamento de estados globais
-│       ├── pages/               # Páginas da aplicação
-│       │   ├── adm/             # Telas administrativas
-│       │   ├── cliente/         # Telas do cliente
-│       │   └── cozinha/         # Telas da cozinha
-│       │
-│       └── styles/              # Arquivos de estilização CSS
+│       ├── mvnw                     # Maven Wrapper (Linux/macOS)
+│       ├── mvnw.cmd                 # Maven Wrapper (Windows)
+│       ├── pom.xml                  # Dependências e configurações do Maven
+│       └── comandos_servidor.txt    # Comandos auxiliares do servidor
 │
-├── docs/                        # Documentação do projeto
-│   ├── db/                      # Documentação do banco de dados
-│   ├── Doc UI-UX/               # Documentação de UI/UX
-│   └── Termo de Abertura - TAP/ # Termo de Abertura do Projeto
+├── frontend/
+│   ├── public/                      # Arquivos públicos
+│   ├── src/
+│   │   ├── assets/                  # Imagens e recursos visuais
+│   │   ├── componets/               # Componentes reutilizáveis
+│   │   │   ├── Button/
+│   │   │   ├── Header/
+│   │   │   ├── IconesCategorias/
+│   │   │   ├── IconesPagamento/
+│   │   │   ├── Input/
+│   │   │   ├── ListaCategorias/
+│   │   │   ├── MenuAba/
+│   │   │   └── Slider/
+│   │   │
+│   │   ├── context/                 # Gerenciamento de estados globais
+│   │   ├── pages/                   # Páginas da aplicação
+│   │   │   ├── adm/                 # Telas administrativas
+│   │   │   │   └── Components/      # Componentes das telas administrativas
+│   │   │   ├── cliente/             # Telas do cliente
+│   │   │   │   └── Components/      # Componentes das telas do cliente
+│   │   │   └── cozinha/             # Telas da cozinha
+│   │   │
+│   │   ├── services/                # Comunicação com a API
+│   │   ├── styles/                  # Arquivos de estilização CSS
+│   │   ├── App.jsx                  # Componente principal da aplicação
+│   │   ├── index.css                # Estilos globais
+│   │   └── main.jsx                 # Ponto de entrada do React
+│   │
+│   ├── package.json                # Dependências e scripts do Front-End
+│   ├── package-lock.json           # Registro das versões das dependências
+│   └── vite.config.js               # Configurações do Vite
 │
-└── README.md                  # Documentação principal do projeto
+├── docs/                            # Documentação do projeto
+│   ├── db/                          # Documentação do banco de dados
+│   ├── Doc UI-UX/                   # Documentação de UI/UX
+│   └── Termo de Abertura - TAP/     # Documentos do projeto e cronograma
+│
+└── README.md                        # Documentação principal do projeto
 ```
 
 ## Intalação e configuração
