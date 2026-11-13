@@ -1,9 +1,6 @@
 // Endereço único da API. Se mudar a porta do Spring, muda só aqui.
 const URL_BASE = 'http://localhost:8888';
 
-// Erro lançado quando a API responde com status >= 400.
-// Guarda o status e o corpo para a tela conseguir mostrar a mensagem
-// que o backend mandou (ex.: "Não é possível excluir uma categoria com produtos vinculados.")
 export class ErroApi extends Error {
     constructor(mensagem, status, corpo) {
         super(mensagem);
@@ -13,8 +10,6 @@ export class ErroApi extends Error {
     }
 }
 
-// Centraliza o fetch para não repetir checagem de resposta
-// em cada função de domínio.
 export async function requisitar(caminho, opcoes = {}) {
     const eUmArquivo = opcoes.body instanceof FormData
     const resposta = await fetch(`${URL_BASE}${caminho}`, {
@@ -25,7 +20,6 @@ export async function requisitar(caminho, opcoes = {}) {
         },
     });
 
-    // 204 (DELETE) e 200 sem corpo não têm o que ler.
     if (resposta.status === 204) {
         return null;
     }
@@ -44,9 +38,6 @@ export async function requisitar(caminho, opcoes = {}) {
     return corpo;
 }
 
-// Quando o Spring devolve uma página de erro HTML (em vez de JSON),
-// JSON.parse estouraria e esconderia o erro real. Aqui devolvemos null
-// e o erro sobe com a mensagem genérica de status.
 function tentarJson(texto) {
     try {
         return JSON.parse(texto);
@@ -55,9 +46,6 @@ function tentarJson(texto) {
     }
 }
 
-// O backend responde de dois jeitos:
-// - erro de validação: { "campo": ["mensagem", ...] }   (ValidationExceptionHandler)
-// - erro de negócio:   { status, erro, mensagem, ... }  (ApiExceptionHandler)
 function extrairMensagem(corpo) {
     if (!corpo || typeof corpo !== 'object') return null;
 
@@ -65,7 +53,6 @@ function extrairMensagem(corpo) {
         return corpo.mensagem;
     }
 
-    // Primeira mensagem de validação de campo
     for (const valor of Object.values(corpo)) {
         if (Array.isArray(valor) && valor.length > 0) {
             return valor[0];

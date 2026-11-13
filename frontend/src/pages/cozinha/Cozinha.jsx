@@ -194,6 +194,38 @@ const ItemPedido = styled.div`
   .qtd { color: #8B5A3A; font-size: 15px; }
 `;
 
+const LinhaItem = styled.div`
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+`;
+
+const FotoItem = styled.div`
+  width: 64px;
+  height: 64px;
+  flex-shrink: 0;
+  border-radius: 12px;
+  background: #ECE9E3;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #AAA;
+  font-size: 10px;
+  text-align: center;
+
+  img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+`;
+
+const CorpoItem = styled.div`
+  flex: 1;
+  min-width: 0;
+`;
+
 const Especificacoes = styled.div`
   display: flex;
   flex-wrap: wrap;
@@ -329,7 +361,7 @@ const Rodape = styled.p`
 // Componente Principal Cozinha
 // ---------------------------------------------------------------
 export default function Cozinha() {
-  const { pedidos = [], atualizarPedido } = useCardapio();
+  const { pedidos = [], produtos = [], atualizarPedido } = useCardapio();
   const [aba, setAba] = useState('fila');
   const [agora, setAgora] = useState(() => Date.now());
 
@@ -337,6 +369,8 @@ export default function Cozinha() {
     const timer = setInterval(() => setAgora(Date.now()), 1000);
     return () => clearInterval(timer);
   }, []);
+
+  const produtoPorId = Object.fromEntries(produtos.map((p) => [p.id, p]));
 
   const porCriacao = (a, b) => (a.criadoEm || 0) - (b.criadoEm || 0);
 
@@ -417,27 +451,42 @@ export default function Cozinha() {
               </TopoCard>
 
               <div>
-                {(pedido.itens || []).map((item, indice) => (
-                  <ItemPedido key={indice} style={{ marginBottom: 10 }}>
-                    <div className="linha">
-                      <span>{item.nome}</span>
-                      <span className="qtd">x{item.quantidade}</span>
-                    </div>
+                {(pedido.itens || []).map((item, indice) => {
+                  const produto = produtoPorId[item.produtoId];
+                  // O backend salva o nome em "nomeProduto"; se faltar, usa o cadastro.
+                  const nomeItem = item.nomeProduto || item.nome || produto?.nome || 'Produto removido';
+                  const fotoItem = produto?.imagem;
 
-                    <Especificacoes>
-                      {item.tamanho && <Tag $tom="neutro">Tamanho: {item.tamanho}</Tag>}
-                      {item.combo && (
-                        <Tag $tom="neutro">Combo: {item.combo.nome} ({item.combo.itens.join(' + ')})</Tag>
-                      )}
-                      {(item.ingredientesRemovidos || []).map((nome) => (
-                        <Tag key={`sem-${nome}`} $tom="remover">SEM {nome}</Tag>
-                      ))}
-                      {(item.adicionais || []).map((ad) => (
-                        <Tag key={`mais-${ad.nome || ad}`} $tom="adicionar">+ {ad.nome || ad}</Tag>
-                      ))}
-                    </Especificacoes>
-                  </ItemPedido>
-                ))}
+                  return (
+                    <ItemPedido key={item.idItem || indice} style={{ marginBottom: 10 }}>
+                      <LinhaItem>
+                        <FotoItem>
+                          {fotoItem ? <img src={fotoItem} alt={nomeItem} /> : 'Sem foto'}
+                        </FotoItem>
+
+                        <CorpoItem>
+                          <div className="linha">
+                            <span>{nomeItem}</span>
+                            <span className="qtd">x{item.quantidade}</span>
+                          </div>
+
+                          <Especificacoes>
+                            {item.tamanho && <Tag $tom="neutro">Tamanho: {item.tamanho}</Tag>}
+                            {item.combo && (
+                              <Tag $tom="neutro">Combo: {item.combo.nome} ({(item.combo.itens || []).join(' + ')})</Tag>
+                            )}
+                            {(item.ingredientesRemovidos || []).map((nome) => (
+                              <Tag key={`sem-${nome}`} $tom="remover">SEM {nome}</Tag>
+                            ))}
+                            {(item.adicionais || []).map((ad) => (
+                              <Tag key={`mais-${ad.nome || ad}`} $tom="adicionar">+ {ad.nome || ad}</Tag>
+                            ))}
+                          </Especificacoes>
+                        </CorpoItem>
+                      </LinhaItem>
+                    </ItemPedido>
+                  );
+                })}
               </div>
 
               {mostrarTempo && (

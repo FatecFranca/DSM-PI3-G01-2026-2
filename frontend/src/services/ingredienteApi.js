@@ -1,9 +1,5 @@
 import { api } from './api';
 
-// O ModalPrato cria ingredientes e adicionais dentro do próprio modal.
-// O backend já cria o ingrediente automaticamente quando ele vem junto
-// no ProdutoRequest, então este arquivo serve para consulta e para
-// os casos em que o admin quiser mexer direto na lista.
 export function listarIngredientes() {
     return api.get('/ingredientes');
 }

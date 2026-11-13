@@ -1,7 +1,5 @@
 import { api } from './api';
 
-// O front trabalha com status em minúsculo (fila, preparando, pronto, entregue)
-// e o backend usa o enum em maiúsculo (FILA, PREPARANDO, PRONTO, ENTREGUE, CANCELADO).
 const STATUS_PARA_API = {
     fila: 'FILA',
     preparando: 'PREPARANDO',
@@ -18,9 +16,6 @@ const STATUS_PARA_FRONT = {
     CANCELADO: 'cancelado',
 };
 
-// O front usa epoch millis (Date.now()) nos cronômetros da Cozinha
-// e do acompanhamento. O backend guarda LocalDateTime.
-// Aqui convertemos nas duas direções.
 function paraMillis(dataHora) {
     if (!dataHora) return null;
     return new Date(dataHora).getTime();
@@ -46,9 +41,6 @@ function paraPedidoDoFront(pedido) {
     };
 }
 
-// ItemPedido do front -> ItemPedido do backend.
-// O front manda adicionais como { nome, preco } e o backend
-// aceita tanto nome quanto ingredienteId: aqui mandamos o nome.
 function paraItemDaApi(item) {
     return {
         produtoId: item.produtoId,
@@ -88,7 +80,6 @@ export async function buscarPedido(id) {
     return paraPedidoDoFront(pedido);
 }
 
-// O valorTotal NÃO é enviado: o backend recalcula com os preços do banco.
 export async function criarPedido(dadosPedido) {
     const corpo = {
         nomeCliente: dadosPedido.nomeCliente,

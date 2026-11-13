@@ -14,7 +14,6 @@ export function paraNumero(valor) {
     return Number.isNaN(numero) ? 0 : numero;
 }
 
-// Converte 33.9 (backend) para "33,90" (formato que as telas exibem).
 export function paraTextoMoeda(valor) {
     return paraNumero(valor).toLocaleString('pt-BR', {
         minimumFractionDigits: 2,
@@ -22,8 +21,6 @@ export function paraTextoMoeda(valor) {
     });
 }
 
-// O backend devolve nomes já resolvidos (categoria, ingredientes, adicionais).
-// O front espera os mesmos campos com outro nome em alguns casos.
 function paraProdutoDoFront(produto) {
     return {
         id: produto.id,
@@ -39,8 +36,6 @@ function paraProdutoDoFront(produto) {
     };
 }
 
-// O front manda ingredientes/adicionais/combos com nomes diferentes
-// e o preço como texto. Aqui traduzimos para o ProdutoRequest do backend.
 function paraProdutoDaApi(produto) {
     return {
         nome: produto.nome,
@@ -53,7 +48,6 @@ function paraProdutoDaApi(produto) {
             preco: paraNumero(tamanho.preco),
             ativo: Boolean(tamanho.ativo),
         })),
-        // O backend aceita lista de nomes e cria o ingrediente se não existir
         ingredientes: (produto.ingredientes || []).map((item) => item.nome),
         adicionais: (produto.adicionais || []).map((item) => ({
             nome: item.nome,
@@ -83,8 +77,6 @@ export async function criarProduto(produto) {
     return criado;
 }
 
-// O PUT devolve a entidade crua (sem os nomes resolvidos),
-// então recarregamos pelo GET para devolver o formato que o front usa.
 export async function atualizarProduto(id, produto) {
     await api.put(`/produtos/${id}`, paraProdutoDaApi(produto));
     const atualizado = await api.get(`/produtos/${id}`);

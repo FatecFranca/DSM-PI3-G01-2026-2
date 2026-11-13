@@ -1,9 +1,5 @@
 import { api } from './api';
 
-// O backend guarda { id, nome, icone }.
-// O front (CardapioContext, ModalCategoria, BarraCategorias, SecaoCategoria)
-// usa { id, texto, icone }. A conversão vive aqui, num lugar só,
-// para nenhuma tela precisar mudar.
 function paraCategoriaDoFront(categoria) {
     return {
         id: categoria.id,
